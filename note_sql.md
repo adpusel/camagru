@@ -218,82 +218,199 @@ LINES TERMINATED BY '\n' -- ou '\r\n' selon l'ordinateur et le programme utilis�
 (espece, sexe, date_naissance, nom, commentaires);  
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#selectionner les donnes
+c'est select qui permet de selectionner les donne
+je fais :
+```mysql
+    SELECT  *
+    FROM table
+    WHERE condition = <condition>
+```
+##WHERE 
+s'utilise avec des operateur de conparaison classique = <> ... \
+j'utilise aussi les operateurs logique : AND OR XOR NOT / il est possible de les raccourcir mais c'est pas bien (pas supporter par tout les langages)
+
+```sql
+SELECT * 
+FROM animal
+WHERE 
+    date_naissance >= '2010'
+    OR
+    (espece='chat' 
+        AND 
+        ( sexe='M'
+        OR 
+        ( sexe='F' AND date_naissance >= '2007-06' )
+        )
+    )    ;
+```
+
+## NULL
+Nul est particulier car je ne peux le tester que avec <=> ou alors avec lettre :  \
+pas possible de le tester sinon hahahaha :)
+```sql
+SELECT * 
+FROM Animal 
+WHERE nom IS NULL;
+```
+
+## le trie 
+je peux trier les data en ajoutant `ORDER BY` apres le where, si where il y a :). 
+```sql
+SELECT * 
+FROM Animal 
+WHERE espece='chien' 
+ORDER BY date_naissance, nom   ASC // DESC;
+```
+c'est possible de faire un trie descendant ou ascendant 
+ou sur plusieur colomne, le trie ce fait dans l'ordre des colomne
+
+## delete les doublons
+si je fais cette request :
+```sql
+    SELECT espece FROM animal
+```
+je vais avoir les 500 chiens possibles et ca pas bien, \
+      je fais : 
+```sql
+SELECT DISTINCT espece 
+FROM Animal;
+```
+    et je get juste une ligne de chaque. 
+
+## Limit
+je peux limiter le nombre de ligne retourne par sql, offset est le depart 
+```sql
+LIMIT nombre_de_lignes [OFFSET decalage]; ==>
+
+SELECT * 
+FROM Animal 
+ORDER BY id 
+LIMIT 6 OFFSET 0;
+
+SELECT * 
+FROM Animal 
+ORDER BY id 
+LIMIT 6 OFFSET 3;
+
+```
+
+# Rendre whwre plus puissant
+
+## recherche de str
+l'opprateur like permet de faire des recherche comme avec des regex \
+il possede deux jocker :    
+==> % >> toute les chaines \
+==> _ >> un seul char \
+je dois echaper des char si je veux les chercher
+```sql
+    'b%'        --> tout ce qui commence oar b
+    'b_'        --> tout ce qui fait deux lettre et commence par b
+    '%ch%ne'    --> contient ch et fini par ne
+// tout les animaux dont le nom contient PAS a
+
+SELECT * 
+FROM Animal 
+WHERE nom NOT LIKE '%a%';
+
+// pour rendre sensible a la casse je dois prendre une chaine bianire (si je suis en utf-8)
+
+SELECT * 
+FROM Animal 
+WHERE nom LIKE '%Lu%'; -- insensible à la casse
+
+SELECT * 
+FROM Animal 
+WHERE nom LIKE BINARY '%Lu%'; -- sensible à la casse
+```
+
+## recherche dans interval
+j'utilise BETWEEN   \
+```sql
+SELECT * 
+FROM Animal 
+WHERE date_naissance BETWEEN '2008-01-05' AND '2009-03-23';
+ou 
+BETWEEN 0 AND 100
+BETWEEN 'a' AND 'd' ==> interval ascii
+ou
+NOT BETWEEN 
+```
+si je veux definir un interval de possibiliter text je fais \
+evite de faire une tonne de or :)
+```sql
+SELECT * 
+FROM Animal 
+WHERE nom IN ('Moka', 'Bilba', 'Tortilla', 'Balou', 'Dana', 'Redbul', 'Gingko');
+
+```
+
+#je peux faire des sauvegarde avec 
+```bash
+mysqldump -u root -phamhamham --opt elevage > elevage.sql
+mysqldump -u user -p --opt nom_de_la_base > sauvegarde.sql
+```
+```sql
+// pour charger une base sauvegarde 2 possibilitees;
+ shell ==> mysql nom_base < chemin_fichier_de_sauvegarde.sql;
+
+USE nom_base;
+SOURCE fichier_de_sauvegarde.sql;
+```
+
+#la suppression des trucs
+elle se fait de la meme maniere que la selection
+```sql
+DELETE FROM nom_table 
+WHERE critères;
+-- pour clear une table entierer je fait 
+DELETE FROM Animal; et bin plus rien ...;
+
+```
+
+#la modification des data 
+!! si je ne met pas de where la modif se fera sur toute la base...
+!! toutjours modifier avec l'id 
+```sql
+UPDATE Animal 
+SET sexe='F', nom='Pataude' 
+WHERE id=21;
+```
+
+# les index
+les index s'ajpute au table et permettent de ranger les choses. 
+sql les ranges sous form d'arbres, il pointent vers les "struct ou sont les data" \
+les index sont ranger en ordre croissant pour accelerer les recherches \
+et l'algo doit etre vraiment pas mal \
+seul les cles unique sont ranger dans l'order, c'est elle qui permettent de get les data \
+les tables avec le plus de recherche doivent etre indexer pour les raison citer plus haut \
+il ne faut pas en mettre partout car ils ralentisse les insertions (faut les updates) \
+
+## manager les indexs
+je peux creer un index sur qui range plusieur colomne, il les rangera dans l'ordre gauche a droite, /
+c'est top si je reflechi car je peux en partant de la droite ( regarde la page https://openclassrooms.com/fr/courses/1959476-administrez-vos-bases-de-donnees-avec-mysql/1962880-index pour get le shema) permet de faire des recherche par la\
+gauche, on ne fait que reprendre le meme index avec des donne en moins\
+si je fais une recherche par la droite, je dois refaire des index car les donnes ne sont plus ranger pareils
+
+## optimiser la recherche
+sql va si je ne limite pas les caracteres de recherche, faire des comparaisons sur la totaliter de toute les string, \
+ex ==> index sur titre de livre --> si je limit la recherche sur les 10 premiers charactere je devrait avoir les memes resultat en \
+economisant de la resources\
+
+## autres types d'index :
+
+###les index unique 
+ils peuvent etre sur une ou deux colomnes,\
+et permettent de s'assurer que jamais je ne met deux fois la meme valeurs dans un col. \
+    sur deux colmne ou plus : l'exemple de toto la tortue pas deux fois, mais toto le chien ok \
+    **on dit que l'on ajoute une CONTRAINTE a la table** \
+
+### les index full text
+ils permettent de faire des recherche plus rapides sur les type texte, et ne marche que sur eux \
+les fulltext ne supportent pas les recherche par la gauche, mais ok pour les multit colomne
+
+
+## comment que on les creer ?
 
 
 

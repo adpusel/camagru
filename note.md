@@ -42,8 +42,3 @@ le fichier index.php va fournir un litle routing pour l'app
 
 
 
-
-
-exo 
-==> faire un trait qui me permet de faire des magnifique form :)
-==>
