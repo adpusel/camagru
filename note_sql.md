@@ -154,13 +154,14 @@ DROP TABLE NAME_TABLE --me drop la table selectionne
 c'est pas bien de modifier les tables, le faire que rarement !!!
 on utilise forcement 
 
-```sql
-ALTER TABLE nom_table ADD date_insertion DATE NOT NULL -- permet d'ajouter quelque chose (une colonne par exemple)
+```mysql
+ALTER TABLE nom_table ADD date_insertion DATE NOT NULL; -- permet d'ajouter quelque chose (une colonne par exemple)
 
 ALTER TABLE nom_table DROP nom_colonne; -- permet de retirer quelque chose 
 
 ALTER TABLE nom_table CHANGE  nom prenom VARCHAR(10) NOT NULL;
-ALTER TABLE nom_table MODIFY ... -- permettent de modifier une colonne
+ALTER TABLE nom_table MODIFY col new_name ; -- permettent de modifier une colonne
+
 ```
 
 #inseret des data
