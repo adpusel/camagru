@@ -5,6 +5,8 @@
  * Time: 22:57
  */
 
+namespace Tuto\HTML;
+
 /**
  * Class Form
  *
@@ -64,7 +66,7 @@ class Form
    */
   public function input(string $name): string
   {
-	return $this->_surround("<input type='text' name='$name' value='{$this->_getValue($name)}'>");
+	return $this->_surround("<input autocomplete='off' type='text' name='$name' value='{$this->_getValue($name)}'>");
   }
 
   /**

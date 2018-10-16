@@ -5,7 +5,7 @@
  * Time: 10:08
  */
 
-require_once "Form.php";
+namespace Tuto\HTML;
 
 class BootstrapForm extends Form
 {
@@ -31,10 +31,10 @@ class BootstrapForm extends Form
 	);
   }
 
- public function submit(string $name): string
- {
+  public function submit(string $name): string
+  {
 
-   return $this->_surround("<input type='submit' class='btn btn-primary' name='$name' value='ok'>");
- }
+	return $this->_surround("<input type='submit' class='btn btn-primary' name='$name' value='ok'>");
+  }
 
 }

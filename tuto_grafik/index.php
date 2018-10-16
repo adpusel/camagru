@@ -1,3 +1,8 @@
+<?php
+use \Tuto\HTML\BootstrapForm;
+use \Tuto\Autoloader;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,16 +20,17 @@
 
 <?php
 require "class/Autoloader.class.php";
-
 Autoloader::register();
 
+
 // je peux mettre direct dans le forme ce que je fais :)
-$form = new BootstrapForm($_POST) ;
+$form = new BootstrapForm($_POST);
 
 
 ?>
 
 <form
+        autocomplete="off"
         action="#"
         method="post">
   <?php
