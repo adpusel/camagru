@@ -15,8 +15,8 @@ une instruction se fini toujours pas ; \
 les commentaires sont `-- ` \
 le text doit etre uniquement entourer de guillements simple, je fais double '' pour echaper ce dernier \
 ```mysql
-    CREATE USER 'student'@'localhost' IDENTIFIED BY 'mot_de_passe';
-	GRANT ALL PRIVILEGES ON elevage.* TO 'student'@'localhost';
+    CREATE USER 'tuto'@'localhost' IDENTIFIED BY 'pass';
+	GRANT ALL PRIVILEGES ON Blog_grafikart.* TO 'tuto'@'localhost';
 
     CREATE USER 'student'  -- : cette commande crée l'utilisateur student.
     -- @'localhost'  : définit à partir d'où l'utilisateur peut se connecter. Dans notre cas, 'localhost', donc il devra être connecté à partir de cet ordinateur.
@@ -24,7 +24,7 @@ le text doit etre uniquement entourer de guillements simple, je fais double '' p
     IDENTIFIED BY 'mot_de_passe';  -- : définit le mot de passe de l'utilisateur.
 
     GRANT ALL PRIVILEGES  -- : cette commande permet d'attribuer tous les droits (c'est-à-dire insertions de données, sélections, 
-    modifications, suppressions…).
+    -- modifications, suppressions…).
 
     ON elevage.*  -- : définit les bases de données et les tables sur lesquelles ces droits sont acquis. Donc ici, on donne les droits sur la base "elevage" (qui n'existe pas encore, mais ce n'est pas grave, nous la créerons plus tard), pour toutes les tables de cette base (grâce à *).
 

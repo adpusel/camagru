@@ -36,9 +36,14 @@ voir dans le code un exemple de protection de l'autoload, qui se lance seulement
 #le blog [ 11 ] la structure
 le fichier index.php va fournir un litle routing pour l'app   
 
+#le pdo 
+il permet de se connecter a la base de donner proprement
 
 
 
 
 
 
+exo 
+==> faire un trait qui me permet de faire des magnifique form :)
+==>
