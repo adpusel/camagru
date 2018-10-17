@@ -411,6 +411,470 @@ les fulltext ne supportent pas les recherche par la gauche, mais ok pour les mul
 
 
 ## comment que on les creer ?
+je met INDEX pour tout sauf PRIMARY KEY \
+UNIQUE se declare tout seul. \
+c'est mieux de definir les indexs une fois les table cree pour pouvoir en faire plusieur et c'est plus propre \
+
+### avec les tables
+```sql
+CREATE TABLE Animal (
+    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    espece VARCHAR(40) NOT NULL,
+    sexe CHAR(1),
+    date_naissance DATETIME NOT NULL,
+    nom VARCHAR(30),
+    commentaires TEXT,
+    PRIMARY KEY (id),
+    INDEX ind_date_naissance (date_naissance),  -- index sur la date de naissance
+    INDEX ind_nom (nom(10))                     -- index sur le nom (le chiffre entre parenthèses étant le nombre de caractères pris en compte)
+)
+ENGINE=INNODB;
+```
+c'est mieux de preciser un index car sinon sql met le siens
+je peux aussi mettre index sauf si je le met avec la colomne
+```sql
+CREATE TABLE Animal (
+    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    espece VARCHAR(40) NOT NULL,
+    sexe CHAR(1),
+    date_naissance DATETIME NOT NULL,
+    nom VARCHAR(30),
+    commentaires TEXT,
+    PRIMARY KEY (id),
+    INDEX ind_date_naissance (date_naissance),  
+    INDEX ind_nom (nom(10)),                    
+    UNIQUE INDEX ind_uni_nom_espece (nom, espece)  -- Index sur le nom et l'espece
+)
+ENGINE=INNODB;
+```
+
+###en les reajoutant 
+```sql
+CREATE INDEX nom_index
+ON nom_table (colonne_index [, colonne2_index ...]);  -- Crée un index simple
+
+CREATE UNIQUE INDEX nom_index
+ON nom_table (colonne_index [, colonne2_index ...]);  -- Crée un index UNIQUE
+
+
+CREATE FULLTEXT INDEX nom_index
+ON nom_table (colonne_index [, colonne2_index ...]);  -- Crée un index FULLTEXT
+```
+
+les index sont des containtes, quand j'ajoute un index je met indirectement une contrainte sur l'index, \
+maie je peux aussi choirir la contraint, c'est inplicite avec index
+
+!! je ne peux pas modifier un index je dois le drop et le remettre ensuite
+```sql
+ALTER TABLE nom_table 
+DROP INDEX nom_index;
+```
+
+### Rappel sur les fulltext
+la recherche full text c'est cool mais mieux de prendre une recherche sepcialiser si bca de donnee \
+pour plus d'info lire le livre de open class room
+
+#RESUMER
+1. l'index est une stucture qui reprends de maniere ordonner les valeurs auquel il se raporte
+2. un index peut se faire sur plusieur colomne
+3. il peut se faire dans le cas d'un texte sur les x premier char
+4. il permet d'accelerer les recherches sur la colomne qu'il indexifi
+5. il peut aussi etre UNIQUE ou FULLTEXT
+
+#faire des relation entre les tables
+
+## la clee primaire
+elle est unique et non null, et se def avec le mot clee : PRIMARY KEY \
+les clee primaires sont deja des index. \
+les clee primaires sont indispensable a toute les table sinon c'est du bullshit !!! \
+je ne peux mettre que 1 PRIMARY KEY sur une table
+comment on les fait ?
+```sql
+    CREATE TABLE Animal (
+    id SMALLINT AUTO_INCREMENT,
+    espece VARCHAR(40) NOT NULL,
+    sexe CHAR(1),
+    date_naissance DATETIME NOT NULL,
+    nom VARCHAR(30),
+    commentaires TEXT, -- better for me at the end 
+    PRIMARY KEY (id)                 
+)
+ENGINE=InnoDB;
+
+-- ajout de clee primaire
+ALTER TABLE nom_table
+ADD [CONSTRAINT [symbole_contrainte]] PRIMARY KEY (colonne_pk1 [, colonne_pk2, ...]);
+
+-- delete remove clee primaire
+ALTER TABLE nom_table
+DROP PRIMARY KEY
+```
+note sur les clee etrangere
+1. elles peuvent etre composites
+2. quand je les cree, un index est creer sur elles en meme temps
+3. la colomne qui sert de reference doit posseder un index
+4. les deux colomne ou groupe doivent posseder les meme types
+5. ca ne marche pas avec le moteur MyISAM
+
+```sql
+    CREATE TABLE [IF NOT EXISTS] Nom_table (
+    colonne1 description_colonne1,
+    [colonne2 description_colonne2,
+    colonne3 description_colonne3,
+    ...,]
+    [ [CONSTRAINT [symbole_contrainte]]  FOREIGN KEY (colonne(s)_clé_étrangère) REFERENCES table_référence (colonne(s)_référence)]
+)
+[ENGINE=moteur];
+
+
+CREATE TABLE Commande (
+    numero INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    client INT UNSIGNED NOT NULL,
+    produit VARCHAR(40),
+    quantite SMALLINT DEFAULT 1,
+    CONSTRAINT fk_client_numero          -- On donne un nom à notre clé
+        FOREIGN KEY (client)             -- Colonne sur laquelle on crée la clé
+        REFERENCES Client(numero)        -- Colonne de référence
+)
+ENGINE=InnoDB;                          -- MyISAM interdit, je le rappelle encore une fois !
+
+-- ajouter ----
+
+ALTER TABLE Commande
+ADD CONSTRAINT fk_client_numero FOREIGN KEY (client) REFERENCES Client(numero);
+
+
+-- deleter ---
+
+ALTER TABLE nom_table
+DROP FOREIGN KEY symbole_contrainte
+
+
+```
+
+```sql
+
+-- j'ajoute a ma table animal la colomne pour linker avec race
+ALTER TABLE Animal ADD COLUMN race_id SMALLINT UNSIGNED; -- même type que la colonne id de Espece
+
+-- j'ajoute aussi les deux colomne pour faire link avec le pere et la mere 
+ALTER TABLE Animal ADD COLUMN pere_id SMALLINT UNSIGNED; 
+ALTER TABLE Animal ADD COLUMN mere_id SMALLINT UNSIGNED; 
+
+CREATE TABLE Race (
+    id SMALLINT UNSIGNED AUTO_INCREMENT,
+    nom_courant VARCHAR(40) NOT NULL,
+    nom_latin VARCHAR(40) NOT NULL UNIQUE,
+    description TEXT,
+    PRIMARY KEY(id)
+)
+ENGINE=InnoDB;
+
+-- ajout des contrainte entre les deux tables, c'est la table animal qui porte la containte, car elle link avec l'autre table qui a les containte de clee unique. 
+ALTER TABLE animal
+ADD CONSTRAINT fk_race_id FOREIGN KEY (race_id) REFERENCES race(id);
+
+-- ajout de contraint sur elle meme
+ALTER TABLE animal
+ADD CONSTRAINT fk_pere_id FOREIGN KEY (pere_id) REFERENCES animal(id);
+
+ALTER TABLE animal
+ADD CONSTRAINT fk_mere_id FOREIGN KEY (mere_id) REFERENCES animal(id);
+
+ALTER TABLE animal
+DROP FOREIGN KEY fk_race_id;
+
+```
+###conclusion
+1. une clee primaire permet d'identifier chaque line de maniere unique
+2. chaque table en a besion d'une 
+3. les clee etrangere permettent de relier les tables entre elles assurant securiter et coerance
+
+# les jointures
+elles permettent de joindre plusiere table 
+```sql
+SELECT Espece.description 
+FROM Espece 
+INNER JOIN Animal 
+    ON Espece.id = Animal.espece_id 
+WHERE Animal.nom = 'Cartouche';
+```
+les jointures genere une nouvelle table avec les deux table precedements creer. \
+
+les alias 
+```sql
+SELECT 5+3 AS Chiots_Cartouche;
+
+-- OU, sans utiliser AS
+
+SELECT 5+3 Chiots_Cartouche;
+```
+shema type avec les jointures interne
+```sql
+SELECT *                                   -- comme d'habitude, vous sélectionnez les colonnes que vous voulez
+FROM nom_table1   
+[INNER] JOIN nom_table2                    -- INNER explicite le fait qu'il s'agit d'une jointure interne, mais c'est facultatif
+    ON colonne_table1 = colonne_table2     -- sur quelles colonnes se fait la jointure
+                                           -- vous pouvez mettre colonne_table2 = colonne_table1, l'ordre n'a pas d'importance
+
+[WHERE ...]                               
+[ORDER BY ...]                            -- les clauses habituelles sont bien sûr utilisables !
+[LIMIT ...]
+
+-- mais je ne suis pas limiter a une seul colome, table je peux aussi faire : 
+
+
+SELECT *
+FROM table1
+INNER JOIN table2
+   ON table1.colonneA = table2.colonneJ
+      AND table1.colonneT = table2.colonneX
+      [AND ...];
+```
+Exemple : sélection du nom des animaux commençant par "Ch", \
+ainsi que de l'id et la description de leur espèce.
+```sql
+SELECT Espece.id,                   -- ici, pas le choix, il faut préciser
+       Espece.description,          -- ici, on pourrait mettre juste description
+       Animal.nom                   -- idem, la précision n'est pas obligatoire. C'est cependant plus clair puisque les espèces ont un nom aussi
+FROM Espece   
+INNER JOIN Animal
+     ON Espece.id = Animal.espece_id
+WHERE Animal.nom LIKE 'Ch%';
+
+
+--- la meme recherche avec des alias : 
+SELECT e.id,                  
+       e.description,          
+       a.nom                   
+FROM Espece AS e          -- On donne l'alias "e" à Espece
+INNER JOIN Animal AS a    -- et l'alias "a" à Animal.
+     ON e.id = a.espece_id
+WHERE a.nom LIKE 'Ch%';
+
+
+--- mais si je prends les alias pour faire du good job et renomer les colomne correctement 
+SELECT Espece.id AS id_espece,                  
+       Espece.description AS description_espece,          
+       Animal.nom AS nom_bestiole                   
+FROM Espece   
+INNER JOIN Animal
+     ON Espece.id = Animal.espece_id
+WHERE Animal.nom LIKE 'Ch%';
+
+```
+le pb avec ce genre de jointure est que ca ne marche pas si les deux col on des data en commun sinon ca ne marchera pas  \
+car les deux tables n'ont rien en commun, ca ne prendra pas les param avec les colomn qui font null \
+mais pas les colomne qui les font matcher comme elle ne peuvent pas etre null. // \
+je peux faire les jointures par la droite ou par la gauche 
+
+
+```sql
+-- permet de selectionner les animaux qui on des race set a null, ce qui ne marcherai pas en tant normal
+SELECT Animal.nom AS nom_animal, Race.nom AS race
+FROM Animal                                                -- Table de gauche
+RIGHT JOIN Race                                            -- Table de droite
+    ON Animal.race_id = Race.id
+WHERE Race.espece_id = 2
+ORDER BY Race.nom, Animal.nom;
+
+-- OU
+
+SELECT Animal.nom AS nom_animal, Race.nom AS race
+FROM Animal                                              -- Table de gauche
+RIGHT OUTER JOIN Race                                    -- Table de droite
+    ON Animal.race_id = Race.id
+WHERE Race.espece_id = 2
+ORDER BY Race.nom, Animal.nom;
+
+```
+
+quand les deux tables ont les memes colone je peux les linker en jointure 
+```sql
+SELECT *
+FROM table1
+[INNER | LEFT | RIGHT] JOIN table2 USING (colonneJ);  -- colonneJ est présente dans les deux tables
+
+-- équivalent à 
+
+SELECT *
+FROM table1
+[INNER | LEFT | RIGHT] JOIN table2 ON table1.colonneJ = table2.colonneJ;
+
+-- si tout les colomnes que je veux linker on les meme nom entre deux table je peux faire un natural joint 
+-- je fais ici la jointure entre ces deux table a et b
+SELECT * 
+FROM table1
+NATURAL JOIN table3;
+
+-- EST ÉQUIVALENT À
+
+SELECT *
+FROM table1
+INNER JOIN table3
+    ON table1.A = table3.A AND table1.C = table3.C;
+
+```
+
+
+```sql
+-- exo
+SELECT race.nom
+FROM race
+where race.nom LIKE '%berger%'
+
+
+SELECT animal.nom, animal.date_naissance, race.nom, race.description
+FROM animal
+LEFT JOIN race 
+    ON animal.race_id = race.id
+WHERE (race.description NOT LIKE '%pelage%' AND race.description NOT LIKE '%poil%' AND race.description NOT LIKE '%robe%')
+or race_id IS NULL
+    ;
+
+
+SELECT animal.nom, race.nom as race_animal, espece.nom_latin as espece, animal.sexe
+FROM animal
+LEFT JOIN race 
+    ON animal.race_id = race.id
+INNER JOIN espece 
+    ON animal.espece_id = espece.id
+-- je peux faire : 
+WHERE espece.nom_courant IN ('Perroquet amazone', '%chat%') 
+
+
+-- a la place de 
+where 
+    espece.nom_courant LIKE 'Perroquet amazone'
+ OR 
+    espece.nom_courant LIKE '%chat%'
+ORDER by espece.nom_latin, race_animal
+;
+
+
+
+
+SELECT animal.nom,  animal.date_naissance, race.nom
+FROM animal
+INNER JOIN race 
+    ON animal.race_id = race.id
+INNER JOIN espece
+    ON animal.espece_id = espece.id
+where 
+        date_naissance > 01072016 
+    AND 
+        espece.nom_courant LIKE 'chien'
+    AND 
+        Animal.sexe = 'F';
+;
+
+SELECT animal.nom, animal.pere_id as papa, animal.mere_id as maman
+FROM animal
+INNER JOIN animal as Pere
+    ON animal.pere_id = Pere.id
+INNER JOIN animal as Maman
+    ON animal.mere_id = Maman.id
+INNER JOIN espece
+    ON animal.espece_id = espece.id
+where 
+
+
+
+``` 
+
+
+bien se rappeler que je peux faire des autojointure et que les autojointure c'est super bien! \
+les jointure c'est super \
+les jointure interne prennent les data qui ne sont pas null \
+les externe toute les data en fonction du sens de lecture; \
+on peut joindre une table a elle meme , ca s'appelle l'autojointure
+
+# les sous requetes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
