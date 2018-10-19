@@ -9,6 +9,7 @@
 // permet de me proteger si j'inclus d4
 namespace App;
 
+use App\Table\Article;
 use \PDO;
 
 class Database
@@ -52,10 +53,37 @@ class Database
 	return $this->_pdo;
   }
 
-  public function query(string $query): array
+  public function query(string $query, $class_name): array
   {
 	$this->getPdo();
-    $pdo_statment = $this->_pdo->query($query);
-	return $pdo_statment->fetchAll(\PDO::FETCH_OBJ);
+	$pdo_statment = $this->_pdo->query($query);
+	return $pdo_statment->fetchAll(\PDO::FETCH_CLASS, $class_name);
   }
+
+  public function
+  prepare(string $statement,
+		  array $attributes,
+		  string $class_name,
+		  $one = false
+  )
+  {
+	// je protege ma request sql des injections
+	PDO :
+	$req = $this->getPdo()->prepare($statement);
+
+	// je lance la request
+	$req->execute($attributes);
+
+	// je precise ici le fetch dont je vais avoir besoin
+	$req->setFetchMode(PDO::FETCH_CLASS, $class_name);
+
+	// je fech que un
+	if ($one === true)
+	  return $req->fetch();
+	else
+	  // je fetch
+	  return $req->fetchAll();
+  }
+
+
 }

@@ -38,9 +38,20 @@ le fichier index.php va fournir un litle routing pour l'app
 
 #le pdo 
 il permet de se connecter a la base de donner proprement
+voir la class pour l'organisation, mais ce qui est reellement important est que je peux
 
+avec fetch donner a php directement une class a charger pour faire mes query /
+et la c'est le truc de ouf, ma class est directement fit avec les valeurs de mon tab,
+je comprend encore pas bien comment ca marche, c'est le la magie noir comme dirai copain !
 
+le trix de ouf avec le get magic pour call les getter c'est bien mais si je le fait trop
+ca va rendre mes class imbitable et ca c'est la merde. Donc juste pour les method en bout \
+de chaine c'est tres suffisant.  
 
+mettre la varibale de connection a la database dans une class static pour pouvoir la call 
+depuis n'importe ou, ce sera ma super class APP :)
+
+finalement on va faire une class qui va faire la connection a la base de donnee avec une classe static c'est plus propre
 
 
 

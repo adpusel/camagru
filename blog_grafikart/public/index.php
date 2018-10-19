@@ -15,8 +15,6 @@ Autoloader::register();
 /*------------------------------------*\
     init les objet
 \*------------------------------------*/
-$db = new Database();
-
 // permet de faire le rooting
 $p = isset($_GET['p']) ? $_GET['p'] : 'home';
 
@@ -26,7 +24,7 @@ ob_start();
 if ($p === 'home')
   include "../pages/home.php";
 
-if ($p === 'single')
+if ($p === 'article')
   include "../pages/single.php";
 
 $content = ob_get_clean();
