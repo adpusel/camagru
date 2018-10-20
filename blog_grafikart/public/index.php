@@ -27,5 +27,8 @@ if ($p === 'home')
 if ($p === 'article')
   include "../pages/single.php";
 
+if ($p === 'categorie')
+  include "../pages/categorie.php";
+
 $content = ob_get_clean();
 include "../pages/templates/default.php";

@@ -7,17 +7,46 @@
 
 namespace App\Table;
 
+use App\App;
+
 class Table
 {
   protected static $table;
 
-  private static function getTable()
+  public function query($statement, $one, $attributes = null)
   {
-    if (self::$table === null)
+	if ($attributes)
 	{
-	 	self::$table = __CLASS__;
+	  return App::getDb()->prepare($statement, $attributes, static::class, $one);
 	}
-	return self::$table;
+	else
+	{
+	  return App::getDb()->query($statement, static::class, $one);
+	}
+  }
+
+
+  public static function find(int $id)
+  {
+	return App::getDb()->prepare(
+	  "
+		SELECT *
+		FROM " . static::getTable() .
+	  " WHERE id = ?",
+	  [$id],
+	  static::class,
+	  true
+	);
+  }
+
+  protected static function getTable()
+  {
+	if (static::$table === null)
+	{
+	  $class_name = explode('\\', static::class);
+	  static::$table = strtolower(end($class_name));
+	}
+	return static::$table;
   }
 
   public static function getAll()
@@ -25,8 +54,9 @@ class Table
 	return App::getDb()->query(
 	  "
 		SELECT *
-		FROM " . self::$table,
-	  __CLASS__);
+		FROM " . static::getTable(),
+	  static::class
+	);
   }
 
   // des que j'essaie de get des trucs avec ma cet class, cette fonction

@@ -53,11 +53,16 @@ class Database
 	return $this->_pdo;
   }
 
-  public function query(string $query, $class_name): array
+  public function query(string $query, $class_name, $one = null)
   {
-	$this->getPdo();
-	$pdo_statment = $this->_pdo->query($query);
-	return $pdo_statment->fetchAll(\PDO::FETCH_CLASS, $class_name);
+	$pdo = $this->getPdo();
+	$pdo = $pdo->query($query);
+	$pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
+
+	if ($one === null)
+	  return $pdo->fetch();
+	else
+	  return $pdo->fetchAll();
   }
 
   public function

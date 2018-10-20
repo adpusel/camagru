@@ -13,7 +13,19 @@ use App\App;
 // je comprends pas vraiment comment ca marche, mais c'est ouf !
 class Article extends Table
 {
-  private static $table = 'article';
+
+  public static function lastByCategory(int $id)
+  {
+	return App::getDb()->prepare(
+	  '
+		SELECT Article.id, Article.titre, Article.contenu, categorie.titre AS cat
+		 FROM article
+		LEFT JOIN Categorie 
+			ON Article.categorie_id = Categorie.id
+			WHERE categorie.id = ?',
+	  [$id],
+	  __CLASS__);
+  }
 
   static function getLastArticles()
   {
