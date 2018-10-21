@@ -58,3 +58,8 @@ finalement on va faire une class qui va faire la connection a la base de donnee 
 exo 
 ==> faire un trait qui me permet de faire des magnifique form :)
 ==>
+
+
+
+lo singleton
+    c'est une classe que je ne fais qu'une fois

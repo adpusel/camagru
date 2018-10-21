@@ -13,11 +13,16 @@ class Table
 {
   protected static $table;
 
-  public function query($statement, $one, $attributes = null)
+  public static function query(string $statement,
+							   bool $one,
+							   $attributes = [])
   {
 	if ($attributes)
 	{
-	  return App::getDb()->prepare($statement, $attributes, static::class, $one);
+	  return App::getDb()->prepare(
+		$statement,
+		$attributes, static::class,
+		$one);
 	}
 	else
 	{

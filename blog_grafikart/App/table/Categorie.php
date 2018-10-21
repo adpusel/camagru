@@ -10,8 +10,6 @@ namespace App\Table;
 class Categorie extends Table
 {
 
-
-
   public function getUrl(): string
   {
 	return 'index.php?p=' . self::$table . '&id=' . $this->id;

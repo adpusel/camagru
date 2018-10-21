@@ -18,7 +18,7 @@ class Database
   protected $_user;
   protected $_host;
   protected $_pass;
-  private $_pdo;
+  private static $pdo;
 
 
   /**
@@ -40,26 +40,30 @@ class Database
 
   public function getPdo(): PDO
   {
-	if ($this->_pdo === null)
+	if (self::$pdo === null)
 	{
-	  $this->_pdo = new PDO(
+	  self::$pdo = new PDO(
 		'mysql:dbname=Blog_grafikart;host=127.0.0.1',
-		$this->_user,
-		$this->_pass);// set les err a visible
-	  $this->_pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+		'tuto',
+		'pass');
+	  // set les err a visible
+	  self::$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 	}
 
 	// TODO : rajouter un controle en cas d'err
-	return $this->_pdo;
+	return self::$pdo;
   }
 
-  public function query(string $query, $class_name, $one = null)
+  public static function
+  query(string $query,
+		string $class_name,
+		bool $one = null)
   {
-	$pdo = $this->getPdo();
+	$pdo = self::getPdo();
 	$pdo = $pdo->query($query);
 	$pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
 
-	if ($one === null)
+	if ($one !== null)
 	  return $pdo->fetch();
 	else
 	  return $pdo->fetchAll();
@@ -69,7 +73,7 @@ class Database
   prepare(string $statement,
 		  array $attributes,
 		  string $class_name,
-		  $one = false
+		  bool $one = false
   )
   {
 	// je protege ma request sql des injections

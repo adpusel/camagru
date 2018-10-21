@@ -16,15 +16,15 @@ class Article extends Table
 
   public static function lastByCategory(int $id)
   {
-	return App::getDb()->prepare(
+	return self::query(
 	  '
 		SELECT Article.id, Article.titre, Article.contenu, categorie.titre AS cat
 		 FROM article
 		LEFT JOIN Categorie 
 			ON Article.categorie_id = Categorie.id
 			WHERE categorie.id = ?',
-	  [$id],
-	  __CLASS__);
+	  false,
+	  [$id]);
   }
 
   static function getLastArticles()
@@ -52,6 +52,6 @@ class Article extends Table
 
   public function getUrl(): string
   {
-	return 'index.php?p=' . self::$table . '&id=' . $this->id;
+	return 'index.php?p=article' . self::$table . '&id=' . $this->id;
   }
 }

@@ -2,14 +2,15 @@
 // je ne prends pas en get pour eviter les injections sql
 namespace App;
 
-$article = App::getDb() ->prepare(
-  "SELECT * FROM Article WHERE id= ?",
-  [$_GET['id']],
-  "App\Table\Article",
-  true);
-?>
+use App\Table\Article;
 
-<?php var_dump($article); ?>
+$article = Article::find($_GET['id']);
+if ($article === false)
+    App::NotFound();
+
+App::setTitle($article->titre)
+
+?>
 
 <h1>
   <?= $article->titre ?>
