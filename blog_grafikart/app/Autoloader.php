@@ -9,8 +9,6 @@ namespace App;
 
 class Autoloader
 {
-
-
   // static pour la call n'importe ou,
   // __CLASS__ ==> le nom de la class
   // spl ... permet de set la function static qui va include les files
@@ -23,12 +21,14 @@ class Autoloader
 
   static function autoload($class)
   {
-	if (strpos($class, __NAMESPACE__ . '\\') === 0)
+    if (strpos($class, __NAMESPACE__ . '\\') === 0)
 	{
 	  $class = str_replace(__NAMESPACE__ . '\\', '', $class);
 	  $class = str_replace('\\', '/', $class);
+	  $class = __DIR__ . "/$class" . ".php";
 
-	  require __DIR__ . "/$class" . ".php";
+
+	  require $class;
 	}
   }
 

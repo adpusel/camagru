@@ -7,12 +7,16 @@
 
 
 // permet de me proteger si j'inclus d4
-namespace App;
+namespace Core\Database;
 
-use App\Table\Article;
 use \PDO;
 
-class Database
+/**0
+ * Class Database
+ *
+ * @package App
+ */
+class mySqlDatabase extends Database
 {
   protected $_name;
   protected $_user;
@@ -56,12 +60,15 @@ class Database
 
   public static function
   query(string $query,
-		string $class_name,
+		string $class_name = '',
 		bool $one = null)
   {
-	$pdo = self::getPdo();
-	$pdo = $pdo->query($query);
-	$pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
+	$pdo = self::getPdo()->query($query);
+
+	if ($class_name !== '')
+	  $pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
+	else
+	  $pdo->setFetchMode(PDO::FETCH_OBJ);
 
 	if ($one !== null)
 	  return $pdo->fetch();

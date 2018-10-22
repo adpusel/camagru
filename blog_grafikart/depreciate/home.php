@@ -20,7 +20,7 @@ try
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 // query me return un entier , pas possible a utiliser pour get les data
-$query = 'INSERT INTO article SET titre="lalal", create_at="' .
+$query = 'INSERT INTO Articles SET titre="lalal", create_at="' .
   date('Y-m-d h:i:s') . '"';
 
 // fait ma query et me retourn un int contenant le nombre de line affecter
@@ -29,7 +29,7 @@ $pdo->exec($query);
 
 
 // cet class query return un obj de type pdo_statement
-$pdo_statement = $pdo->query('select * from article');
+$pdo_statement = $pdo->query('select * from Articles');
 
 // cet obj a plusieur metho dont fetch all
 // fetch all return un tab associatif et numerique, je lui passe une option pour

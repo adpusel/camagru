@@ -5,7 +5,7 @@
  * Time: 22:50
  */
 
-namespace App;
+namespace Core;
 
 class Config
 {
@@ -16,10 +16,10 @@ class Config
   /**
    * @return mixed
    */
-  public static function getInstance()
+  public static function getInstance($file)
   {
 	if (self::$_instance === null)
-	  self::$_instance = new Config();
+	  self::$_instance = new Config($file);
 	return self::$_instance;
   }
 
@@ -28,9 +28,9 @@ class Config
    *
    * @param array $settings
    */
-  public function __construct()
+  public function __construct($file)
   {
-	$this->settings = require dirname(__DIR__) . '/config/config.php';
+	$this->settings = require ($file);
   }
 
   public function get(string $key)

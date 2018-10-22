@@ -5,21 +5,14 @@
  * Time: 13:31
  */
 
-namespace App;
-
-// va set l'autoloading
-require "../App/Autoloader.php";
-Autoloader::register();
+define('ROOT', dirname(__DIR__));
 
 
+require ROOT . '/app/App.php';
+App::load();
 
-
-
-
-$config = Config::getInstance()->get('db_user');
-var_dump($config);
-
-
+$post = App::getTable('Posts');
+//var_dump($post->all());
 
 ///*------------------------------------*\
 //    init les objet
