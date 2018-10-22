@@ -23,7 +23,7 @@
 </head>
 
 <body>
-<h1><?= \App\App::getTitle() ?></h1>
+<!--<h1>--><?//= \App::getTitle() ?><!--</h1>-->
 <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
   </div><!--/.nav-collapse -->

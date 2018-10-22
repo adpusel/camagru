@@ -61,22 +61,19 @@ class mySqlDatabase extends Database
   public static function
   query(string $query,
 		string $class_name = '',
-		bool $one = null)
+		bool $one)
   {
 	$pdo = self::getPdo()->query($query);
 
-	if ($class_name !== '')
-	  $pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
-	else
-	  $pdo->setFetchMode(PDO::FETCH_OBJ);
+	$pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
 
-	if ($one !== null)
+	if ($one !== false)
 	  return $pdo->fetch();
 	else
 	  return $pdo->fetchAll();
   }
 
-  public function
+  public static function
   prepare(string $statement,
 		  array $attributes,
 		  string $class_name,
@@ -85,7 +82,7 @@ class mySqlDatabase extends Database
   {
 	// je protege ma request sql des injections
 	PDO :
-	$req = $this->getPdo()->prepare($statement);
+	$req = self::getPdo()->prepare($statement);
 
 	// je lance la request
 	$req->execute($attributes);
@@ -94,10 +91,9 @@ class mySqlDatabase extends Database
 	$req->setFetchMode(PDO::FETCH_CLASS, $class_name);
 
 	// je fech que un
-	if ($one === true)
+	if ($one !== false)
 	  return $req->fetch();
 	else
-	  // je fetch
 	  return $req->fetchAll();
   }
 

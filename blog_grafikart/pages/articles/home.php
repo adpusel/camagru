@@ -2,23 +2,21 @@
 
 namespace App;
 
-use App\Table\Article;
+use App;
 use App\Table\Categorie;
-
 ?>
 
 <div class="row">
     <div class="col-sm-8">
         <ul>
-		  <?php foreach (Article::getLastArticles() as $article): ?>
-              <!--	--><?php //var_dump($article); ?>
+		  <?php foreach (App::getTable('Post')->last() as $article): ?>
 
               <h2>
                   <a href="<?= $article->url ?>"><?= $article->titre ?></a>
               </h2>
-              <p> <?= $article->cat ?></p>
-
               <p><?= $article->extrait ?></p>
+              <p> <?= $article->categorie ?></p>
+
 
 		  <?php endforeach; ?>
         </ul>
@@ -26,7 +24,7 @@ use App\Table\Categorie;
 
     <div class="col-sm-4">
         <ul>
-		  <?php foreach (Categorie::getAll() as $cat): ?>
+		  <?php foreach (App::getTable('Category')->all() as $cat): ?>
               <li>
                   <a href="<?= $cat->url ?>">
                       <?= $cat->titre ?>
