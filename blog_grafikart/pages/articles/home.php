@@ -3,7 +3,6 @@
 namespace App;
 
 use App;
-use App\Table\Categorie;
 ?>
 
 <div class="row">

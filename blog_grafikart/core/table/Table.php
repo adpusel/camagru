@@ -26,6 +26,12 @@ class Table
 	return $this->query('SELECT * FROM '. $this->_table);
   }
 
+  public function one($id)
+  {
+	return $this->query('SELECT * FROM '. $this->_table
+	  . ' WHERE id =' .  $id, null, true);
+  }
+
   public function query($statement, $attributes = null, $one = false)
   {
 	if ($attributes)

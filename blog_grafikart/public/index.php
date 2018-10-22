@@ -7,18 +7,14 @@
 
 define('ROOT', dirname(__DIR__));
 
-
 require ROOT . '/app/App.php';
 App::load();
-
-
-
 
 /*------------------------------------*\
     init les objet
 \*------------------------------------*/
 // permet de faire le rooting
-$p = isset($_GET['page']) ? $_GET['page'] : 'home';
+$p = isset($_GET['p']) ? $_GET['p'] : 'home';
 
 
 //// permet de stocker tout les output pour les reutiliser ensuite
@@ -27,14 +23,14 @@ if ($p === 'home')
   require ROOT . "/pages/articles/home.php";
 
 
-//if ($p === 'article')
-//  include "../pages/single.php";
+if ($p === 'article')
+  require ROOT .  "/pages/articles/single.php";
 //
-//if ($p === 'categorie')
-//  include "../pages/categorie.php";
-//
-//if ($p === '404')
-//  include "../pages/home.php";
-//
+if ($p === 'category')
+  require ROOT .  "/pages/articles/category.php";
+
+if ($p === '404')
+  include "../pages/home.php";
+
 $content = ob_get_clean();
 require ROOT . "/pages/templates/default.php";

@@ -2,13 +2,11 @@
 // je ne prends pas en get pour eviter les injections sql
 namespace App;
 
-use App\Table\Article;
+use App;
 
-$article = Article::find($_GET['id']);
-if ($article === false)
-    App::NotFound();
-
-App::setTitle($article->titre)
+// ici je protege contre les movaise id
+$article = App::getTable("Post")->one($_GET['id']);
+//if ($item === false)
 
 ?>
 
