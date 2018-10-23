@@ -14,7 +14,7 @@ class PostEntity extends Entity
 {
   public function getUrl()
   {
-	return 'index.php?p=article&id=' . $this->id;
+	return 'index.php?p=post.single&id=' . $this->id;
   }
 
   public function getExtrait()
@@ -23,7 +23,6 @@ class PostEntity extends Entity
 	$html .= '<p><a href="' . $this->getUrl() . '"> Voir la suite </a>';
 	return $html;
   }
-
 
 
 }

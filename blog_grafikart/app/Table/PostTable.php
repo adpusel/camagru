@@ -8,6 +8,7 @@
 
 namespace App\Table;
 
+use Core\Entity\Entity;
 use Core\Table\Table;
 
 class PostTable extends Table
@@ -21,5 +22,17 @@ class PostTable extends Table
 	LEFT JOIN Category ON categorie_id = Category.id
 	ORDER BY Post.create_at DESC 
 	");
+  }
+
+  public function getLastByCategory($id)
+  {
+	return $this->query(
+	  'SELECT *
+	  FROM Post 
+	  LEFT JOIN category 
+	  ON category.id = Post.categorie_id
+	  WHERE categorie_id = ?',
+	  [$id]
+	);
   }
 }
