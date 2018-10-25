@@ -1,21 +1,26 @@
 <?php
+/**
+ * User: adpusel
+ * Date: 20/10/2018
+ * Time: 15:36
+ */
 
 namespace App;
 
 use App;
+
 ?>
 
 <div class="row">
     <div class="col-sm-8">
         <ul>
-		  <?php foreach (App::getTable('Post')->last() as $article): ?>
-
+		  <?php foreach ($articles as $article): ?>
+                <?php var_dump($article); ?>
               <h2>
                   <a href="<?= $article->url ?>"><?= $article->titre ?></a>
               </h2>
-              <p><?= $article->extrait ?></p>
-              <p> <?= $article->categorie ?></p>
 
+              <p><?= $article->extrait ?></p>
 
 		  <?php endforeach; ?>
         </ul>
@@ -23,10 +28,10 @@ use App;
 
     <div class="col-sm-4">
         <ul>
-		  <?php foreach (App::getTable('Category')->all() as $cat): ?>
+		  <?php foreach ($cats as $cat): ?>
               <li>
                   <a href="<?= $cat->url ?>">
-                      <?= $cat->titre ?>
+					<?= $cat->titre ?>
                   </a>
               </li>
 
@@ -35,6 +40,7 @@ use App;
 
     </div>
 
-
 </div>
+
+
 

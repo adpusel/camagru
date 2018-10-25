@@ -59,24 +59,39 @@ class mySqlDatabase extends Database
   }
 
   public static function
-  query(string $query,
+  query(string $statement,
 		string $class_name = '',
 		bool $one)
   {
-	$pdo = self::getPdo()->query($query);
+	$req = self::getPdo()->query($statement);
 
-	$pdo->setFetchMode(PDO::FETCH_CLASS, $class_name);
+
+	// je ne peux pas fetch ces request
+	if (
+	  strpos($statement, 'UPDATE') ||
+	  strpos($statement, 'INSERT') ||
+	  strpos($statement, 'DELETE')
+	)
+	{
+	  return $req;
+	}
+
+
+	if ($class_name !== null)
+	  $req->setFetchMode(PDO::FETCH_CLASS, $class_name);
+	else
+	  $req->setFetchMode(PDO::FETCH_OBJ);
 
 	if ($one !== false)
-	  return $pdo->fetch();
+	  return $req->fetch();
 	else
-	  return $pdo->fetchAll();
+	  return $req->fetchAll();
   }
 
   public static function
   prepare(string $statement,
 		  array $attributes,
-		  string $class_name,
+		  $class_name,
 		  bool $one = false
   )
   {
@@ -85,11 +100,23 @@ class mySqlDatabase extends Database
 	$req = self::getPdo()->prepare($statement);
 
 	// je lance la request
-	$req->execute($attributes);
+	$res = $req->execute($attributes);
 
-	// je precise ici le fetch dont je vais avoir besoin
-	$req->setFetchMode(PDO::FETCH_CLASS, $class_name);
-
+	// je ne peux pas fetch ces request
+	if (
+	  strpos($statement, 'UPDATE') ||
+	  strpos($statement, 'INSERT') ||
+	  strpos($statement, 'DELETE')
+	)
+	{
+	  return $res;
+	}
+	
+	if ($class_name !== null)
+	  $req->setFetchMode(PDO::FETCH_CLASS, $class_name);
+	else
+	  $req->setFetchMode(PDO::FETCH_OBJ);
+	
 	// je fech que un
 	if ($one !== false)
 	  return $req->fetch();
@@ -97,5 +124,9 @@ class mySqlDatabase extends Database
 	  return $req->fetchAll();
   }
 
-
+  public function lastInsertId()
+  {
+	return $this->getPdo()->lastInsertId();
+  }
+  
 }

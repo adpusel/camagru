@@ -19,7 +19,7 @@ class PostTable extends Table
 	SELECT Post.id, Post.titre, Post.contenu, Post.create_at, 
 	Category.titre AS categorie
 	FROM Post
-	LEFT JOIN Category ON categorie_id = Category.id
+	LEFT JOIN Category ON category_id = Category.id
 	ORDER BY Post.create_at DESC 
 	");
   }
@@ -27,11 +27,11 @@ class PostTable extends Table
   public function getLastByCategory($id)
   {
 	return $this->query(
-	  'SELECT *
+	  'SELECT Post.*
 	  FROM Post 
 	  LEFT JOIN category 
-	  ON category.id = Post.categorie_id
-	  WHERE categorie_id = ?',
+	  ON category.id = Post.category_id
+	  WHERE category_id = ?',
 	  [$id]
 	);
   }

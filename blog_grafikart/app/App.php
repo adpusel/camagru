@@ -43,6 +43,13 @@ class App
 	return new $class_name(self::getDb());
   }
 
+  public static function getT(string $name)
+  {
+	$class_name = 'App\\Table\\' . ucfirst($name) . 'Table';
+	return new $class_name(self::getDb());
+  }
+
+
   public static function getDb()
   {
 	 Config::getInstance(ROOT. '/config/config.php' );
