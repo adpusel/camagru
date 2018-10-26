@@ -5,12 +5,10 @@
  * Time: 11:15
  */
 
-namespace Core;
+namespace Event;
 
 class Autoloader
 {
-
-
   // static pour la call n'importe ou,
   // __CLASS__ ==> le nom de la class
   // spl ... permet de set la function static qui va include les files
@@ -27,8 +25,11 @@ class Autoloader
 	{
 	  $class = str_replace(__NAMESPACE__ . '\\', '', $class);
 	  $class = str_replace('\\', '/', $class);
-	  $class = __DIR__ . "/$class" . ".php";
+	  $class = __DIR__ . "/Event/$class" . ".php";
+
+	  var_dump($class);
 	  require $class;
 	}
   }
+
 }

@@ -7,16 +7,24 @@ namespace Composer\Autoload;
 class ComposerStaticInit31e1eff3a55a66db0539179344655a65
 {
     public static $prefixLengthsPsr4 = array (
-        'L' => 
+        'M' => 
         array (
-            'League\\HTMLToMarkdown\\' => 22,
+            'Michelf\\' => 8,
+        ),
+        'A' => 
+        array (
+            'App\\' => 4,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'League\\HTMLToMarkdown\\' => 
+        'Michelf\\' => 
         array (
-            0 => __DIR__ . '/..' . '/league/html-to-markdown/src',
+            0 => __DIR__ . '/..' . '/michelf/php-markdown/Michelf',
+        ),
+        'App\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/App',
         ),
     );
 

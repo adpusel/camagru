@@ -10,8 +10,7 @@ require "vendor/autoload.php";
 use \Michelf\Markdown;
 
 // je me repete bcq car je dois faire les deux c'est relou
-require "app/helper/form";
-echo \app\helper\Form::input();
+echo App\Helper\Form::input();
 
 
 echo Markdown::defaultTransform("Salut tout le monde j'essaie le **markdown**");

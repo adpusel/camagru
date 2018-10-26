@@ -1,7 +1,7 @@
 {
     "name": "adpusel/composer",
     "require": {
-        "league/html-to-markdown": "^4.8"
+        "michelf/php-markdown": "^1.4"
     },
     "authors": [
         {
