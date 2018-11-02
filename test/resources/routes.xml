@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<routes>
+    <route url="noVar" module="News" action="index"/>
+    <route url="oneVar-([0-9]+)" module="News" action="index" vars="id"/>
+    <route url="twoVar-([0-9]+)-([a-z]+)" module="News" action="index"
+           vars="id,name"/>
+</routes>
