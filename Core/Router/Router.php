@@ -9,11 +9,15 @@ class Router
   const NO_ROUTE = 1;
 
   // dans le contructeur j'instancie avec les routes de mon app
-  public function __construct($module_name)
+  public function __construct(string $module_name, $test)
   {
 	$xml = new \DOMDocument;
-	$xml->load(__DIR__ . '/../../' . '/App/' . $module_name .
-	  '/Config/routes.xml');
+	if ($test)
+	  $xml->load($test);
+	else
+	  $xml->load(__DIR__ . '/../../' . '/App/' . $module_name .
+		'/Config/routes.xml');
+
 
 	$routes = $xml->getElementsByTagName('route');
 
@@ -32,7 +36,7 @@ class Router
 	}
   }
 
-  public function getRoute($url) : Route
+  public function getRoute($url): Route
   {
 	foreach ($this->routes as $route)
 	{
@@ -40,49 +44,19 @@ class Router
 	  if ($route->match($url) === true)
 	  {
 		// je la retourne deja setup
-	    return $route;
+		return $route;
 	  }
 	}
 
 	throw new \RuntimeException('Aucune route ne correspond à l\'URL',
 	  self::NO_ROUTE);
   }
+
+  /**
+   * @return array
+   */
+  public function getRoutes(): array
+  {
+	return $this->routes;
+  }
 }
-
-//new Router("Auth");
-preg_match('#/admin/news-update-([0-9]+)-([0-9]+)\.html#',
-  "/admin/news-update-99-88.html",
-  $tab);
-var_dump($tab);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

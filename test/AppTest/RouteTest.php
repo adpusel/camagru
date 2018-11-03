@@ -82,10 +82,4 @@ class RouteTest extends TestCase
 	  $twoVarRoute->getTabVars()
 	);
   }
-
-
-//  public function testRouter( )
-//  {
-//
-//  }
 }

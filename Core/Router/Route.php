@@ -64,12 +64,7 @@ class Route
   public function setVarsNames(string $strAllVarsNames)
   {
 	$this->tabVars =
-//	  array_flip(
 	  explode(',', $strAllVarsNames);
-//	);
-//	$this->vars = array_map(function ($el) {
-//	  return null;
-//	}, $this->vars);
   }
 
   /*------------------------------------*\
