@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpunit>
     <php>
-        <var name="DB_DSN" value="mysql:dbname=phpunitTest;host=localhost" />
+        <var name="DB_DSN" value="mysql:dbname=camagru;host=localhost" />
         <var name="DB_USER" value="root" />
         <var name="DB_PASSWD" value="hamhamham" />
-        <var name="DB_DBNAME" value="myguestbook" />
+        <var name="DB_DBNAME" value="camagru" />
     </php>
 </phpunit>

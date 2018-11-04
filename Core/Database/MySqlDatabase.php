@@ -70,29 +70,27 @@ class MySqlDatabase extends Database
   public static function prepare(
 	string $statement,
 	array $attributes,
-	$class_name,
+	string $class_name = '',
 	bool $one = false
   )
   {
 	// je protege ma request sql des injections
-	PDO :
-	$req = self::getPdo()->prepare($statement);
+	$req = self::$Pdo->prepare($statement);
 
 	// je lance la request
 	$res = $req->execute($attributes);
 
 	// je ne peux pas fetch ces request
 	if (
-	  strpos($statement, 'UPDATE') ||
-	  strpos($statement, 'INSERT') ||
-	  strpos($statement, 'DELETE')
+	  strpos($statement, 'UPDATE') === 0 ||
+	  strpos($statement, 'INSERT') === 0 ||
+	  strpos($statement, 'DELETE') === 0
 	)
 	{
 	  return $res;
 	}
 
-	// TODO : ne devrais jamais arriver a delete si besoin
-	if ($class_name !== null)
+	if ($class_name !== '')
 	  $req->setFetchMode(PDO::FETCH_CLASS, $class_name);
 	else
 	  $req->setFetchMode(PDO::FETCH_OBJ);
@@ -105,7 +103,7 @@ class MySqlDatabase extends Database
   }
 
   // get l'id de la derniere intance mis en db
-  public static function  lastInsertId()
+  public static function lastInsertId()
   {
 	return self::lastInsertId();
   }
