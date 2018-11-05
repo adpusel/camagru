@@ -19,12 +19,11 @@ use Core\Entity\Entity;
 
 class UserEntity extends Entity
 {
-  private
+  protected
 	$email,
 	$password,
 	$email_check,
-	$hash
-  , $id;
+	$hash;
 
   /**
    * @return mixed
@@ -40,22 +39,6 @@ class UserEntity extends Entity
   public function setHash(string $hash): void
   {
 	$this->hash = $hash;
-  }
-
-  /**
-   * @return mixed
-   */
-  public function getId(): int
-  {
-	return $this->id;
-  }
-
-  /**
-   * @param mixed $id
-   */
-  public function setId(int $id): void
-  {
-	$this->id = $id;
   }
 
   /**

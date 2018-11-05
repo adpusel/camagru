@@ -5,7 +5,7 @@
  * Time: 15:22
  */
 
-namespace DatabaseTesting\Mappers;
+namespace DatabaseTesting\Test;
 
 
 use Core\Auth\ManagePass;
@@ -13,7 +13,7 @@ use Core\Database\MySqlDatabase;
 use DatabaseTesting\Generic_Tests_DatabaseTestCase;
 use DatabaseTesting\ConvertArrayToDBUnitTable;
 
-class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
+class MySqlDatabaseTest extends Generic_Tests_DatabaseTestCase
 {
   use ManagePass;
 

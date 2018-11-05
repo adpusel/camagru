@@ -50,7 +50,6 @@ class PhpMail
 	$this->setMessage($message);
 	$this->subject = $subject;
 	$this->setHeader($header);
-	return $this;
   }
 
   public function sendEmail(): bool

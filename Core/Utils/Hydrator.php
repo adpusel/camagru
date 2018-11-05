@@ -1,5 +1,5 @@
 <?php
-namespace OCFram;
+namespace Core\Utils;
 
 trait Hydrator
 {

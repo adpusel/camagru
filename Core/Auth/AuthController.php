@@ -13,7 +13,7 @@ use Core\Mail\PhpMail;
 use Core\User;
 use Core\User\UserEntity;
 
-class AuthManager
+class AuthController
 {
   /**
    * @var PhpMail
@@ -22,12 +22,11 @@ class AuthManager
 
   use ManagePass;
 
-  public function __construct(PhpMail $mailer)
+  public function __construct()
   {
 	// je fais un parceur qui valide et met dans une entite mes datas
 	// take http request and put in entity user
 	// TODO : implementer un validator
-	$this->mailer = $mailer;
   }
 
   private function _generateLink(UserEntity $userEntity, $action)
@@ -60,9 +59,12 @@ class AuthManager
 	  MySqlDatabase::query('SELECT email FROM Users WHERE email = ?',
 		[
 		  $userEntity->getEmail()
-		]);
-	if ($isNew !== null)
-	  return $userEntity::EXISTING_USER;
+		], '', true);
+
+	if ($isNew !== false)
+	  return false;
+	var_dump($isNew);
+
 
 	// to this point the user is correct
 	$userEntity->setHash(
@@ -70,14 +72,31 @@ class AuthManager
 	);
 
 	// genere chaine de 100 char ramdom passable par url
-	$userEntity->setEmailCheck(urlencode(bin2hex(random_bytes(50))));
+	$userEntity->setEmailCheck(
+	  urlencode(bin2hex(random_bytes(50))
+	  ));
+
+	$res = MySqlDatabase::query(
+	  /** @lang MySQL */
+	  'INSERT INTO Users SET 
+                    email = :email,
+                    hash = :hash,
+                    email_check = :email_check',
+	  [
+	    'email' => $userEntity->getEmail(),
+		'hash' => $userEntity->getHash(),
+		'email_check' => $userEntity->getEmailCheck()
+	  ]
+	);
+
+	// id de l'user nouvellement creer
+	$userEntity->setId(MySqlDatabase::lastInsertId());
 
 	// send le mail de verification
 	if ($this->sendInscriptionEmail($userEntity) === false)
 	  return new \Exception('le mailer ne marche pas');
 
-	// je l'enregistre mais tant que l'user n'est pas enregistrer pas de log
-
+	return true;
 
   }
 

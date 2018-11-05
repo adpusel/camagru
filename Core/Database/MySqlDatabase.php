@@ -105,7 +105,7 @@ class MySqlDatabase extends Database
   // get l'id de la derniere intance mis en db
   public static function lastInsertId()
   {
-	return self::lastInsertId();
+	return self::$Pdo->lastInsertId();
   }
 
 }

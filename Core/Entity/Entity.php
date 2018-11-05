@@ -8,12 +8,13 @@
 
 namespace Core\Entity;
 
+use Core\Utils\Hydrator;
 
 abstract class Entity implements \ArrayAccess
 {
   use Hydrator;
 
-  const EXISTING_USER = 1;
+  const EXISTING_USER = -1;
 
   protected $erreurs = [],
 	$id;
@@ -36,7 +37,7 @@ abstract class Entity implements \ArrayAccess
 	return $this->erreurs;
   }
 
-  public function id()
+  public function getId()
   {
 	return $this->id;
   }

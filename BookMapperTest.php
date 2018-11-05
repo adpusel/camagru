@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseTesting\Mappers;
+namespace DatabaseTesting\Test;
 
 
 use DatabaseTesting\Generic_Tests_DatabaseTestCase;
