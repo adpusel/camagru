@@ -8,12 +8,15 @@
 namespace DatabaseTesting\Mappers;
 
 
+use Core\Auth\ManagePass;
 use Core\Database\MySqlDatabase;
 use DatabaseTesting\Generic_Tests_DatabaseTestCase;
 use DatabaseTesting\ConvertArrayToDBUnitTable;
 
 class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 {
+  use ManagePass;
+
   public function getDataSet()
   {
 	MySqlDatabase::getInstance(
@@ -22,14 +25,14 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	  [
 		'Users' => [
 		  [
-			'id'       => 1,
-			'email'    => 'joe',
-			'password' => 'lalala'
+			'id'    => 1,
+			'email' => 'joe',
+			'hash'  => 'pass_1'
 		  ],
 		  [
-			'id'       => 2,
-			'email'    => 'patrick',
-			'password' => 'ololo'
+			'id'    => 2,
+			'email' => 'patrick',
+			'hash'  => 'pass_2'
 		  ],
 		],
 	  ]
@@ -41,30 +44,30 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	$newArrayWanted = [
 	  'Users' => [
 		[
-		  'id'       => 1,
-		  'email'    => 'joe',
-		  'password' => 'lalala'
+		  'id'    => 1,
+		  'email' => 'joe',
+		  'hash'  => 'pass_1'
 		],
 		[
-		  'id'       => 2,
-		  'email'    => 'patrick',
-		  'password' => 'ololo'
+		  'id'    => 2,
+		  'email' => 'patrick',
+		  'hash'  => 'pass_2'
 		],
 		[
-		  'id'       => 3,
-		  'email'    => 'sab',
-		  'password' => 'toto'
+		  'id'    => 3,
+		  'email' => 'sab',
+		  'hash'  => 'pass_3'
 		],
 	  ]
 	];
 
-	MySqlDatabase::prepare(
+	MySqlDatabase::query(
 	  'INSERT INTO `Users` SET
 		email = :email,
-		password = :password',
+		hash = :hash',
 	  [
-		'email'    => 'sab',
-		'password' => 'toto'
+		'email' => 'sab',
+		'hash'  => 'pass_3'
 	  ]);
 
 	// check si j'ai bien ajoute
@@ -77,7 +80,7 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	$queryTable = $this
 	  ->getConnection()
 	  ->createQueryTable(
-		'Users', 'SELECT id, email, password FROM Users'
+		'Users', 'SELECT id, email, hash FROM Users'
 	  );
 
 	$expectedTable =
@@ -90,33 +93,33 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	$newArrayWanted = [
 	  'Users' => [
 		[
-		  'id'       => 1,
-		  'email'    => 'joe',
-		  'password' => 'lalala'
+		  'id'    => 1,
+		  'email' => 'joe',
+		  'hash'  => 'pass_1'
 		],
 		[
-		  'id'       => 2,
-		  'email'    => 'sab',
-		  'password' => 'toto'
+		  'id'    => 2,
+		  'email' => 'sab',
+		  'hash'  => 'toto'
 		],
 	  ]
 	];
 
-	MySqlDatabase::prepare(
+	MySqlDatabase::query(
 	  'UPDATE Users SET
 		email = :email,
-		password = :password
+		hash = :hash
 		WHERE id = 2',
 	  [
-		'email'    => 'sab',
-		'password' => 'toto'
+		'email' => 'sab',
+		'hash'  => 'toto'
 	  ]);
 
 	// permet de get les info de la tables
 	$queryTable = $this
 	  ->getConnection()
 	  ->createQueryTable(
-		'Users', 'SELECT id, email, password FROM Users'
+		'Users', 'SELECT id, email, hash FROM Users'
 	  );
 
 	$expectedTable =
@@ -129,14 +132,14 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	$newArrayWanted = [
 	  'Users' => [
 		[
-		  'id'       => 1,
-		  'email'    => 'joe',
-		  'password' => 'lalala'
+		  'id'    => 1,
+		  'email' => 'joe',
+		  'hash'  => 'pass_1'
 		],
 	  ]
 	];
 
-	MySqlDatabase::prepare(
+	MySqlDatabase::query(
 	  'DELETE FROM Users
 		WHERE id = 2',
 	  []
@@ -146,7 +149,7 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	$queryTable = $this
 	  ->getConnection()
 	  ->createQueryTable(
-		'Users', 'SELECT id, email, password FROM Users'
+		'Users', 'SELECT id, email, hash FROM Users'
 	  );
 
 	// compare la table avec le reste
@@ -157,7 +160,7 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 
   public function testFetch()
   {
-	$query = MySqlDatabase::prepare(
+	$query = MySqlDatabase::query(
 	  'SELECT * FROM Users
 		WHERE id = ?',
 	  [1],
@@ -167,12 +170,12 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 
 	$this->assertEquals('1', $query->id);
 	$this->assertEquals('joe', $query->email);
-	$this->assertEquals('lalala', $query->password);
+	$this->assertEquals('pass_1', $query->hash);
   }
 
   public function testFetchAll()
   {
-	$query = MySqlDatabase::prepare(
+	$query = MySqlDatabase::query(
 	  'SELECT * FROM Users',
 	  [],
 	  ''
@@ -181,12 +184,12 @@ class MySqlMapperTest extends Generic_Tests_DatabaseTestCase
 	// premier el
 	$this->assertEquals('1', $query[0]->id);
 	$this->assertEquals('joe', $query[0]->email);
-	$this->assertEquals('lalala', $query[0]->password);
+	$this->assertEquals('pass_1', $query[0]->hash);
 
 	// deuxieme el
 	$this->assertEquals('2', $query[1]->id);
 	$this->assertEquals('patrick', $query[1]->email);
-	$this->assertEquals('ololo', $query[1]->password);
+	$this->assertEquals('pass_2', $query[1]->hash);
   }
 
 

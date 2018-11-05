@@ -67,7 +67,7 @@ class MySqlDatabase extends Database
 	}
   }
 
-  public static function prepare(
+  public static function query(
 	string $statement,
 	array $attributes,
 	string $class_name = '',
