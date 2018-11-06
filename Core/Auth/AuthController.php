@@ -63,8 +63,6 @@ class AuthController
 
 	if ($isNew !== false)
 	  return false;
-	var_dump($isNew);
-
 
 	// to this point the user is correct
 	$userEntity->setHash(
@@ -77,19 +75,19 @@ class AuthController
 	  ));
 
 	$res = MySqlDatabase::query(
-	  /** @lang MySQL */
+	/** @lang MySQL */
 	  'INSERT INTO Users SET 
                     email = :email,
                     hash = :hash,
                     email_check = :email_check',
 	  [
-	    'email' => $userEntity->getEmail(),
-		'hash' => $userEntity->getHash(),
+		'email'       => $userEntity->getEmail(),
+		'hash'        => $userEntity->getHash(),
 		'email_check' => $userEntity->getEmailCheck()
 	  ]
 	);
-
-	// id de l'user nouvellement creer
+	if ($res === false)
+	  return false;
 	$userEntity->setId(MySqlDatabase::lastInsertId());
 
 	// send le mail de verification

@@ -8,9 +8,9 @@
 
 namespace Core\Model;
 
-use Model;
 
 class UserModel extends Model
 {
 
 }
+

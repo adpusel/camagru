@@ -30,7 +30,7 @@ class MySqlDatabase extends Database
    * @return MySqlDatabase
    * @throws \Exception si file de config manquant ou incomplet
    */
-  public static function getInstance(string $path_file_config): MySqlDatabase
+  public static function getInstance(string $path_file_config = ''): MySqlDatabase
   {
 	if (self::$_instance === null)
 	{
@@ -82,9 +82,9 @@ class MySqlDatabase extends Database
 
 	// je ne peux pas fetch ces request
 	if (
-	  strpos($statement, 'UPDATE') === 0 ||
-	  strpos($statement, 'INSERT') === 0 ||
-	  strpos($statement, 'DELETE') === 0
+	  stristr($statement, 'UPDATE') !== false ||
+	  stristr($statement, 'INSERT') !== false ||
+	  stristr($statement, 'DELETE') !== false
 	)
 	{
 	  return $res;

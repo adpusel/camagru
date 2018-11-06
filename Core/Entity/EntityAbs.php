@@ -9,12 +9,11 @@
 namespace Core\Entity;
 
 use Core\Utils\Hydrator;
+use function ucfirst;
 
-abstract class Entity implements \ArrayAccess
+abstract class EntityAbs implements \ArrayAccess
 {
   use Hydrator;
-
-  const EXISTING_USER = -1;
 
   protected $erreurs = [],
 	$id;
@@ -73,5 +72,11 @@ abstract class Entity implements \ArrayAccess
   public function offsetUnset($var)
   {
 	throw new \Exception('Impossible de supprimer une quelconque valeur');
+  }
+
+  public function __get($name)
+  {
+	$name_func = 'get' . ucfirst($name);
+	return $this->$name_func();
   }
 }

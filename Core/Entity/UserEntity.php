@@ -1,22 +1,15 @@
 <?php
 /**
  * User: adpusel
- * Date: 11/5/18
- * Time: 10:56
+ * Date: 11/6/18
+ * Time: 14:45
  */
 
 
-namespace Core\User;
+namespace Core\Entity;
 
 
-
-/*˜*
- * Class UserEntity
- *
- * @package Core\User
- */
-
-class UserEntity extends Entity
+class UserEntity extends EntityAbs
 {
   protected
 	$email,
@@ -87,6 +80,4 @@ class UserEntity extends Entity
   {
 	$this->email_check = $email_check;
   }
-
-
 }

@@ -12,14 +12,13 @@ use Core\Database\MySqlDatabase;
 use Core\User\UserEntity;
 
 
-
 define('ROOT', 'Applications/mappstack-7.1.22-1/apache2/htdocs/42/camagru');
 MySqlDatabase::getInstance(
   __DIR__ . "/../config/database.ini");
 
 $authManager = new AuthController();
 $user = new UserEntity([
-  'email' => 'adrien.pusel@gmail.com',
+  'email'    => 'adrien.pusel@gmail.com',
   'password' => 'toto'
 ]);
 
