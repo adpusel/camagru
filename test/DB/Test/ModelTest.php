@@ -7,7 +7,7 @@
 
 use Core\Database\MySqlDatabase;
 use Core\Entity\UserEntity;
-use Core\Model\UserModel;
+use Core\User\UserModel;
 use DatabaseTesting\Generic_Tests_DatabaseTestCase;
 use DatabaseTesting\ConvertArrayToDBUnitTable;
 
@@ -41,7 +41,7 @@ class ModelTest extends Generic_Tests_DatabaseTestCase
 
   public function testFetch()
   {
-	$modele = new UserModel("Core\Entity", MySqlDatabase::getInstance());
+	$modele = new UserModel();
 
 	$query = $modele->fetchOne(1);
 
@@ -52,7 +52,7 @@ class ModelTest extends Generic_Tests_DatabaseTestCase
 
   public function testFetchAll()
   {
-	$modele = new UserModel("Core\Entity", MySqlDatabase::getInstance());
+	$modele = new UserModel();
 
 	$query = $modele->fetchAll();
 
@@ -89,7 +89,7 @@ class ModelTest extends Generic_Tests_DatabaseTestCase
 	  ]
 	];
 
-	$modele = new UserModel("Core\Entity", MySqlDatabase::getInstance());
+	$modele = new UserModel();
 	$modele->create([
 	  'email' => 'sab',
 	  'hash'  => 'pass_3'
@@ -130,7 +130,7 @@ class ModelTest extends Generic_Tests_DatabaseTestCase
 	  ]
 	];
 
-	$modele = new UserModel("Core\Entity", MySqlDatabase::getInstance());
+	$modele = new UserModel();
 	$modele->modify([
 		'id'    => 2,
 		'email' => 'sab',
@@ -162,7 +162,7 @@ class ModelTest extends Generic_Tests_DatabaseTestCase
 	];
 
 
-	$modele = new UserModel("Core\Entity", MySqlDatabase::getInstance());
+	$modele = new UserModel();
 	$modele->delete(2);
 
 	// permet de get les info de la tables

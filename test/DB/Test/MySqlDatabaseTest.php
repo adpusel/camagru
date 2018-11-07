@@ -8,8 +8,8 @@
 namespace DatabaseTesting\Test;
 
 
-use Core\Auth\ManagePass;
 use Core\Database\MySqlDatabase;
+use Core\User\ManagePass;
 use DatabaseTesting\Generic_Tests_DatabaseTestCase;
 use DatabaseTesting\ConvertArrayToDBUnitTable;
 

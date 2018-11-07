@@ -1,28 +1,47 @@
 <?php
 /**
  * User: adpusel
- * Date: 11/5/18
- * Time: 10:56
+ * Date: 11/6/18
+ * Time: 14:45
  */
 
 
 namespace Core\User;
 
-
-
-/*˜*
- * Class UserEntity
- *
- * @package Core\User
- */
+use Core\Model\Entity;
 
 class UserEntity extends Entity
 {
+  use ManagePass;
+
   protected
-	$email,
-	$password,
-	$email_check,
-	$hash;
+	$email = '',
+	$password = '',
+	$email_check = '',
+	$hash = '',
+	$is_check = false;
+
+  /**
+   * @return bool
+   */
+  public function isCheck(): bool
+  {
+	return $this->is_check;
+  }
+
+  /**
+   * @param bool $is_check
+   */
+  public function setIsCheck(bool $is_check): void
+  {
+	$this->is_check = $is_check;
+  }
+
+  public function generateHash()
+  {
+	$this->hash = $this->_hashPass($this->password);
+	return $this;
+  }
 
   /**
    * @return mixed
@@ -30,14 +49,6 @@ class UserEntity extends Entity
   public function getHash(): string
   {
 	return $this->hash;
-  }
-
-  /**
-   * @param mixed $hash
-   */
-  public function setHash(string $hash): void
-  {
-	$this->hash = $hash;
   }
 
   /**
@@ -57,15 +68,7 @@ class UserEntity extends Entity
   }
 
   /**
-   * @return mixed
-   */
-  public function getPassword(): string
-  {
-	return $this->password;
-  }
-
-  /**
-   * @param mixed $password
+   * @param string $password
    */
   public function setPassword(string $password): void
   {
@@ -81,12 +84,21 @@ class UserEntity extends Entity
   }
 
   /**
-   * @param mixed $email_check
+   * @return string
    */
-  public function setEmailCheck(string $email_check): void
+  public function getPassword(): string
   {
-	$this->email_check = $email_check;
+	return $this->password;
   }
 
+  public function generateEmailCheck(): UserEntity
+  {
+	$this->email_check = urlencode(bin2hex(random_bytes(50)));
+	return $this;
+  }
 
+  public function sameCheck($check_get)
+  {
+	return $check_get === $this->email_check;
+  }
 }

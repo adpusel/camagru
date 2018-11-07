@@ -6,12 +6,11 @@
  */
 
 
-namespace Core\Entity;
+namespace Core\Model;
 
 use Core\Utils\Hydrator;
-use function ucfirst;
 
-abstract class EntityAbs implements \ArrayAccess
+class Entity implements \ArrayAccess
 {
   use Hydrator;
 
@@ -77,6 +76,7 @@ abstract class EntityAbs implements \ArrayAccess
   public function __get($name)
   {
 	$name_func = 'get' . ucfirst($name);
+//	if (method_exists(true, $name_func))
 	return $this->$name_func();
   }
 }

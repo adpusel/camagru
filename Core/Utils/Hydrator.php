@@ -1,6 +1,8 @@
 <?php
 namespace Core\Utils;
 
+use Exception;
+
 trait Hydrator
 {
   public function hydrate($data)

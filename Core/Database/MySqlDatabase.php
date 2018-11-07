@@ -9,6 +9,7 @@
 namespace Core\Database;
 
 use PDO;
+use function trim;
 
 require 'Database.php';
 
@@ -74,7 +75,8 @@ class MySqlDatabase extends Database
 	bool $one = false
   )
   {
-	// je protege ma request sql des injections
+	$statement = trim($statement);
+    // je protege ma request sql des injections
 	$req = self::$Pdo->prepare($statement);
 
 	// je lance la request

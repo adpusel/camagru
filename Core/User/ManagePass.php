@@ -6,7 +6,7 @@
  */
 
 
-namespace Core\Auth;
+namespace Core\User;
 
 
 trait ManagePass

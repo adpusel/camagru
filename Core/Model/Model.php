@@ -8,7 +8,8 @@
 namespace Core\Model;
 
 use Core\Database\Database;
-use function var_dump;
+use Core\Database\MySqlDatabase;
+use function get_class;
 
 class Model
 {
@@ -22,22 +23,25 @@ class Model
    */
   protected $database;
 
-  public function __construct($pathEntity, Database $database)
+  public function __construct(Database $database = null)
   {
+
 	$this->table = (new \ReflectionClass($this))->getShortName();
 	$this->table = str_replace('Model', '', $this->table);
 
-	$this->entity = $pathEntity . '\\' . $this->table . 'Entity';
-//	$this->entity = new $this->entity();
-//	var_dump($this->entity);
-	$this->database = $database;
+	$this->entity = str_replace('Model', 'Entity', get_class($this));
+
+	$this->database =
+	  $database === null ? MySqlDatabase::getInstance() : $database;
 
 	$this->table .= 's';
   }
 
   private function getColumnsAndAttributes(array $fields)
   {
-	foreach ($fields as $name => $value)
+
+    $this->columns = [];
+    foreach ($fields as $name => $value)
 	{
 	  if ($name !== 'id')
 		$this->columns[] = "$name = :$name";
@@ -51,7 +55,6 @@ class Model
   public function create($field)
   {
 	$this->getColumnsAndAttributes($field);
-	var_dump($this->attributes);
 	return
 	  $this
 		->database
@@ -109,5 +112,10 @@ class Model
 		[
 		  $id
 		]);
+  }
+
+  public function lastInsertId( )
+  {
+	return $this->database->lastInsertId();
   }
 }

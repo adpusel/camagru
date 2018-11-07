@@ -5,7 +5,7 @@
  * Time: 07:48
  */
 
-namespace Core;
+namespace Core\User;
 
 /**
  * Interface User
