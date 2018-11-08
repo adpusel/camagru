@@ -19,6 +19,7 @@ use DatabaseTesting\Generic_Tests_DatabaseTestCase;
 use DatabaseTesting\ConvertArrayToDBUnitTable;
 
 define('ROOT', 'Applications/mappstack-7.1.22-1/apache2/htdocs/42/camagru');
+session_start();
 
 class UserTest extends Generic_Tests_DatabaseTestCase
 
@@ -36,10 +37,10 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	  __DIR__ . "/../../resources/database.ini");
 
 	// init mes objets
-	$app = new Core\App\App("a", "a", "", "", "", "");
+	$app = new Core\App\App("a", "a");
 
 	$this->userController = new UserController($app, "a", "a");
-	$this->request = new HTTPRequest();
+	$this->request = $app->getHttpRequest();
 	$this->page = $this->userController->getPage();
 
 	$userEntity = new UserEntity([
@@ -68,7 +69,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	);
   }
 
-  private function setDataGlobal($method, $arrayGet = [], $arrayPost = [])
+  private function setDataRequest($method, $arrayGet = [], $arrayPost = [])
   {
 	$_GET = $arrayGet;
 	$_POST = $arrayPost;
@@ -85,7 +86,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function testGetIncriptionPage()
   {
-	$this->setDataGlobal('GET');
+	$this->setDataRequest('GET');
 
 	// new form str
 	$formStr = $this->get_form_fill_render();
@@ -106,7 +107,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function testInscriptionNewUser()
   {
-	$this->setDataGlobal('POST', [], [
+	$this->setDataRequest('POST', [], [
 	  'email'    => 'adrien@prairial.com',
 	  'password' => 'DDeuauaou888'
 	]);
@@ -124,7 +125,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function test_inscription_new_user_bad_password()
   {
-	$this->setDataGlobal('POST', [], [
+	$this->setDataRequest('POST', [], [
 	  'email'    => 'naa@aeu.com',
 	  'password' => 'aoeua'
 	]);
@@ -141,7 +142,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function test_inscription_new_user_bad_email()
   {
-	$this->setDataGlobal('POST', [], [
+	$this->setDataRequest('POST', [], [
 	  'email'    => 'naa@aeucom',
 	  'password' => 'aoeuauGGGHH009a'
 	]);
@@ -197,7 +198,10 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function test_delete_user()
   {
+	$this->setDataRequest('POST', [],
+	  ['id' => 1]);
 
+	$this->userController->delete($this->request);
   }
 
 }

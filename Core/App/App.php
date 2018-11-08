@@ -9,6 +9,10 @@
 namespace Core\App;
 
 
+use Core\Http\HTTPRequest;
+use Core\Http\HTTPResponse;
+use Core\Router\Router;
+
 class App
 {
   protected $user;
@@ -21,22 +25,44 @@ class App
   /**
    * App constructor.
    *
-   * @param $user
    * @param $router
    * @param $httpRequest
    * @param $httpResponse
    * @param $config
    * @param $name
    */
-  public function __construct($user, $router, $httpRequest, $httpResponse,
-							  $config, $name)
+  public function __construct($config, $name)
   {
-	$this->user = $user;
-	$this->router = $router;
-	$this->httpRequest = $httpRequest;
-	$this->httpResponse = $httpResponse;
+	$this->user = new User($this);
+//	$this->router = new Router();
+	$this->httpRequest = new HTTPRequest($this);
+	$this->httpResponse = new HTTPResponse($this);
 	$this->config = $config;
 	$this->name = $name;
+  }
+
+  /**
+   * @return User
+   */
+  public function getUser(): User
+  {
+	return $this->user;
+  }
+
+  /**
+   * @return HTTPRequest
+   */
+  public function getHttpRequest(): HTTPRequest
+  {
+	return $this->httpRequest;
+  }
+
+  /**
+   * @return HTTPResponse
+   */
+  public function getHttpResponse(): HTTPResponse
+  {
+	return $this->httpResponse;
   }
 
   // TODO : faire ici le routeur

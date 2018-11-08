@@ -118,7 +118,21 @@ class UserController extends Controller
 
   public function delete(HTTPRequest $request)
   {
-	$this->model->delete($request->postData(['id']));
+	// je ne get que en post pour la seccurite
+	// je check si je suis bien le mec qui peux me supprimer
+	// dans session j'ai l'id et je check que j'ai le bon
+	$user = $this->app->getUser();
+	if ($user->isAuthenticated() && $request->method() === 'POST')
+	{
+	  if ($user->getAttribute('id') === $request->postData('id'))
+	  {
+	    $this->model->delete($request->postData('id'));
+	    return true;
+		// TODO : set une redirection
+		// TODO : faire et tester le flash message
+	  }
+	}
+	return false;
   }
 
 }

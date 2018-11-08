@@ -3,6 +3,8 @@
 namespace Core\Http;
 
 
+use Core\App\ApplicationComponent;
+
 class HTTPResponse extends ApplicationComponent
 {
   protected $page;
