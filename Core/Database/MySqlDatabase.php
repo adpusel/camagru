@@ -9,6 +9,7 @@
 namespace Core\Database;
 
 use PDO;
+use PDOException;
 use function trim;
 
 require 'Database.php';
@@ -75,33 +76,41 @@ class MySqlDatabase extends Database
 	bool $one = false
   )
   {
-	$statement = trim($statement);
-    // je protege ma request sql des injections
-	$req = self::$Pdo->prepare($statement);
-
-	// je lance la request
-	$res = $req->execute($attributes);
-
-	// je ne peux pas fetch ces request
-	if (
-	  stristr($statement, 'UPDATE') !== false ||
-	  stristr($statement, 'INSERT') !== false ||
-	  stristr($statement, 'DELETE') !== false
-	)
+	try
 	{
-	  return $res;
+	  $statement = trim($statement);
+	  // je protege ma request sql des injections
+	  $req = self::$Pdo->prepare($statement);
+
+	  // je lance la request
+	  $res = $req->execute($attributes);
+
+	  // je ne peux pas fetch ces request
+	  if (
+		stristr($statement, 'UPDATE') !== false ||
+		stristr($statement, 'INSERT') !== false ||
+		stristr($statement, 'DELETE') !== false
+	  )
+	  {
+		return $res;
+	  }
+
+	  if ($class_name !== '')
+		$req->setFetchMode(PDO::FETCH_CLASS, $class_name);
+	  else
+		$req->setFetchMode(PDO::FETCH_OBJ);
+
+	  // je fech que un
+	  if ($one !== false)
+		return $req->fetch();
+	  else
+		return $req->fetchAll();
+	} catch (PDOException $e)
+	{
+	  var_dump('probleme avec la base de donnee merci de recommencer');
+	  var_dump($e->getMessage());
+	  exit();
 	}
-
-	if ($class_name !== '')
-	  $req->setFetchMode(PDO::FETCH_CLASS, $class_name);
-	else
-	  $req->setFetchMode(PDO::FETCH_OBJ);
-
-	// je fech que un
-	if ($one !== false)
-	  return $req->fetch();
-	else
-	  return $req->fetchAll();
   }
 
   // get l'id de la derniere intance mis en db

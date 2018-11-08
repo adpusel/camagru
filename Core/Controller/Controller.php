@@ -1,19 +1,21 @@
 <?php
 namespace Core\Controller;
 
+use Core\App\ApplicationComponent;
+
 abstract class Controller extends ApplicationComponent
 {
   protected $action = '';
   protected $module = '';
   protected $page = null;
   protected $view = '';
-  protected $managers = null;
+  protected $model = null;
 
   public function __construct(Application $app, $module, $action)
   {
     parent::__construct($app);
 
-    $this->managers = new Managers('PDO', PDOFactory::getMysqlConnexion());
+    $this->model = new (get_class($this) . 'Controller')();
     $this->page = new Page($app);
 
     $this->setModule($module);

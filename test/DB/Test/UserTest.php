@@ -106,19 +106,11 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$this->assertInternalType('string',
 	  $this->userController->inscription($this->request));
 
+	// TODO : tester avec le message flash
 	// test avec le meme mail
 	$this->assertSame(false,
 	  $this->userController->inscription($this->request));
 
-	// test bad email
-	$this->setDataGlobal('POST', [], [
-	  'email'    => 'naa@aeu',
-	  'password' => 'aoeuaeu343RRR'
-	]);
-
-	// TODO : tester avec le message flash
-	//	$this->assertSame(false,
-	//	  $this->userController->inscription($this->request));
   }
 
   public function test_inscription_new_user_bad_password()
@@ -184,6 +176,11 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
 	// check si check est toujours false
 	$this->assertSame(false, $user->isCheck());
+  }
+
+  public function test_delete_user( )
+  {
+	
   }
 
 }

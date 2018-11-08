@@ -7,15 +7,15 @@
 
 namespace Core\User;
 
+use Core\App\App;
+use Core\Controller\Controller;
 use Core\Http\HTTPRequest;
 use Core\Mail\PhpMail;
 use Core\User\HTML\UserFormBuilder;
-use function link;
 use const ROOT;
 
-class UserController
+class UserController extends Controller
 {
-  private $model;
 
   /**
    * @return UserModel
@@ -26,10 +26,20 @@ class UserController
   }
 
 
-  public function __construct()
+  public function __construct(App $app)
   {
-	// TODO : implementer un validator
+	parent::__construct($app);
 	$this->model = new UserModel();
+  }
+
+  private function _initEntityWithForm(HTTPRequest $request)
+  {
+	$userEntety = new UserEntity();
+
+	// j'hydrante mon entity si post
+	if ($request->method() === 'POST')
+	  $userEntety->hydrate($request->getAllPost());
+	return $userEntety;
   }
 
   private function _generateLink(UserEntity $userEntity, $action)
@@ -42,7 +52,7 @@ class UserController
 	return "<a href='$href'> CLICK </a>";
   }
 
-  private function sendInscriptionEmail(UserEntity $userEntity)
+  private function _sendInscriptionEmail(UserEntity $userEntity)
   {
 	$mailer = new PhpMail(
 	  $userEntity->getEmail(),
@@ -69,25 +79,10 @@ class UserController
 	return false;
   }
 
-  private function initEntityWithForm(HTTPRequest $request)
-  {
-	$userEntety = new UserEntity();
-
-	// j'hydrante mon entity si post
-	if ($request->method() === 'POST')
-	  $userEntety->hydrate($request->getAllPost());
-	return $userEntety;
-  }
-
-  // get en post les data
-  //
-  // si je suis en post je test les data
-  // si les data sont ok je save
-  // je retourne false
   public function inscription(HTTPRequest $request)
   {
 	// init user et l'hydrate si post
-	$userEntity = $this->initEntityWithForm($request);
+	$userEntity = $this->_initEntityWithForm($request);
 
 	// build le form
 	$formBuilder = new UserFormBuilder($userEntity);
@@ -114,7 +109,7 @@ class UserController
 	  ->generateEmailCheck()
 	  ->generateHash();
 
-	$res = $this->model->create(
+	$this->model->create(
 	  [
 		'email'       => $userEntity->getEmail(),
 		'hash'        => $userEntity->getHash(),
@@ -122,19 +117,19 @@ class UserController
 	  ]
 	);
 
-	// TODO : retourner un err de PDO
-	if ($res === false)
-	  return false;
-
 	$userEntity->setId($this->model->lastInsertId());
 	// send le mail de verification
-	if ($this->sendInscriptionEmail($userEntity) === false)
+	if ($this->_sendInscriptionEmail($userEntity) === false)
 	  return new \Exception('le mailer ne marche pas');
 
 	// ici je dois redirider
 	return "{$userEntity->getId()}.{$userEntity->getEmailCheck()}";
   }
 
+  public function delete(HTTPRequest $request)
+  {
+	$this->model->delete($request->postData(['id']));
+  }
 
 }
 
