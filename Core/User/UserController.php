@@ -86,18 +86,29 @@ class UserController
   // je retourne false
   public function inscription(HTTPRequest $request)
   {
-	// si pas post
+	// init user et l'hydrate si post
 	$userEntity = $this->initEntityWithForm($request);
 
-	// check si l'user n'existe pas deja
+	// build le form
+	$formBuilder = new UserFormBuilder($userEntity);
+	$form = $formBuilder->build();
+
+	// si get je stop et retourn un form tout beau
+    if ($request->method() === 'GET')
+	{
+	  $view = $form->createView();
+	  return $view;
+	}
+
+	// check si l'user n'existe pas deja je fais un message flash
+	// TODO : le set dans mon err
 	$isNew = $this->model->userExist($userEntity->email);
 	if ($isNew !== false)
 	  return false;
 
-	$formBuilder = new UserFormBuilder($userEntity);
-	$form = $formBuilder->build();
+	// TODO : return le form
 	if ($form->isValid() === false)
-	  return false;
+	  return $form->createView();
 
 	$userEntity
 	  ->generateEmailCheck()
@@ -111,14 +122,16 @@ class UserController
 	  ]
 	);
 
+	// TODO : retourner un err de PDO
 	if ($res === false)
 	  return false;
-	$userEntity->setId($this->model->lastInsertId());
 
+	$userEntity->setId($this->model->lastInsertId());
 	// send le mail de verification
 	if ($this->sendInscriptionEmail($userEntity) === false)
 	  return new \Exception('le mailer ne marche pas');
 
+	// ici je dois redirider
 	return "{$userEntity->getId()}.{$userEntity->getEmailCheck()}";
   }
 

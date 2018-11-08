@@ -8,7 +8,9 @@
 use Core\Database\MySqlDatabase;
 
 // permet de charger les config de testage de la db
+use Core\HTML\Form\Form;
 use Core\Http\HTTPRequest;
+use Core\User\HTML\UserFormBuilder;
 use Core\User\UserController;
 use Core\User\UserEntity;
 
@@ -20,10 +22,20 @@ define('ROOT', 'Applications/mappstack-7.1.22-1/apache2/htdocs/42/camagru');
 
 class UserTest extends Generic_Tests_DatabaseTestCase
 {
+  protected $userController;
+  protected $request;
+  protected $link_inscription;
+  protected $form;
+
+
   public function getDataSet()
   {
 	MySqlDatabase::getInstance(
 	  __DIR__ . "/../../resources/database.ini");
+
+	// init mes objets
+	$this->userController = new UserController();
+	$this->request = new HTTPRequest();
 
 	$userEntity = new UserEntity([
 	  'email'    => 'adrien@gmail.com',
@@ -33,7 +45,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$userEntity
 	  ->generateEmailCheck()
 	  ->generateHash();
-	$GLOBALS["link_incription"] = [
+	$this->link_inscription = [
 	  'id'    => 1,
 	  'token' => $userEntity->getEmailCheck(),
 	];
@@ -51,12 +63,37 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	);
   }
 
-  private function setDataGlobal($method, $arrayGet, $arrayPost)
+  private function setDataGlobal($method, $arrayGet = [], $arrayPost = [])
   {
 	$_GET = $arrayGet;
 	$_POST = $arrayPost;
 	$_SERVER['REQUEST_METHOD'] = $method;
   }
+
+  private function get_form_fill_render(bool $do_check = false)
+  {
+	$form = (new UserFormBuilder(new UserEntity($_POST)))->build();
+	if ($do_check)
+	  $form->isValid();
+	return $form->createView();
+  }
+
+  public function testGetIncriptionPage()
+  {
+	$this->setDataGlobal('GET');
+
+	// new form str
+	$formStr = $this->get_form_fill_render();
+
+	$this->assertSame(
+	  $formStr,
+	  $this
+		->userController
+		->inscription($this->request)
+	);
+
+  }
+
 
   public function testInscriptionNewUser()
   {
@@ -65,19 +102,13 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	  'password' => 'DDeuauaou888'
 	]);
 
-	$userController = new UserController();
-
-	// init la request
-	$request = new HTTPRequest();
-
-
-	// premier test
-	// il garde le lien de confimation est dans $emailLink
+	// il garde le lien de confimation est dans $link_inscription
 	$this->assertInternalType('string',
-	  $userController->inscription($request));
+	  $this->userController->inscription($this->request));
 
 	// test avec le meme mail
-	$this->assertSame(false, $userController->inscription($request));
+	$this->assertSame(false,
+	  $this->userController->inscription($this->request));
 
 	// test bad email
 	$this->setDataGlobal('POST', [], [
@@ -85,64 +116,74 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	  'password' => 'aoeuaeu343RRR'
 	]);
 
-	$this->assertSame(false,
-	  $userController->inscription($request));
-
-	// test bad
-	$this->setDataGlobal('POST', [], [
-	  'email'    => 'naa@aeu.com',
-	  'password' => 'aoeua']);
-
-	$this->assertSame(false,
-	  $userController->inscription($request));
+	// TODO : tester avec le message flash
+	//	$this->assertSame(false,
+	//	  $this->userController->inscription($this->request));
   }
 
-  public function testGoodCheckLink()
+  public function test_inscription_new_user_bad_password()
   {
-	// ajoute un nouvel user
-	$userController = new UserController();
+	$this->setDataGlobal('POST', [], [
+	  'email'    => 'naa@aeu.com',
+	  'password' => 'aoeua'
+	]);
 
-	// init la request
-	$request = new HTTPRequest();
+	$this->assertSame(
+	  $this->get_form_fill_render(true),
+	  $this->userController->inscription($this->request)
+	);
+  }
 
+  public function test_inscription_new_user_bad_email()
+  {
+	$this->setDataGlobal('POST', [], [
+	  'email'    => 'naa@aeucom',
+	  'password' => 'aoeuauGGGHH009a'
+	]);
+
+	$this->assertSame(
+	  $this->get_form_fill_render(true),
+	  $this->userController->inscription($this->request)
+	);
+  }
+
+
+  public function test_good_check_link()
+  {
 	// simule le click sur le lien du email
-	$_GET = $GLOBALS['link_incription'];
+	$_GET = $this->link_inscription;
 
 	// je le donne a la fonction check qui retourn true si link work
 	$this->assertSame(true,
-	  $userController->inscription_check($request));
+	  $this->userController->inscription_check($this->request));
 
 	// je get l'user
-	$user = $userController->getModel()->fetchOne($request->getData('id'));
+	$user = $this->userController->getModel()
+	  ->fetchOne($this->request->getData('id'));
 
 	// est il bien valide
 	$this->assertSame(true, $user->isCheck());
   }
 
-  public function testCheckBadCheckLink()
+  public function test_bad_check_link()
   {
-	// ajoute un nouvel user
-	$userController = new UserController();
-
-	// init la request
-	$request = new HTTPRequest();
 
 	// simule le click sur le lien du email
-	$_GET = $GLOBALS['link_incription'];
+	$_GET = $this->link_inscription;
 
 	// je met un token pouri
 	$_GET['token'] = 'auaouaou a uaoeuaohu aoeu ';
 
 	// je le donne a la fonction check qui retourn true si link work
 	$this->assertSame(false,
-	  $userController->inscription_check($request));
+	  $this->userController->inscription_check($this->request));
 
 	// je get l'user
-	$user = $userController->getModel()->fetchOne($request->getData('id'));
+	$user = $this->userController->getModel()
+	  ->fetchOne($this->request->getData('id'));
 
 	// check si check est toujours false
 	$this->assertSame(false, $user->isCheck());
   }
-
 
 }

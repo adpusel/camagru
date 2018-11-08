@@ -10,6 +10,7 @@ namespace Core\User\HTML;
 
 use Core\Html\Field\InputField;
 use Core\Html\Field\TextField;
+use Core\HTML\Form\Form;
 use Core\HTML\Form\FormBuilder;
 use Core\Model\Entity;
 use Core\Validator\EmailValidator;
@@ -24,7 +25,7 @@ class UserFormBuilder extends FormBuilder
 	parent::__construct($entity);
   }
 
-  public function build()
+  public function build() : Form
   {
 	return $this->form
 	  ->add(new InputField([
