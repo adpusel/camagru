@@ -5,7 +5,7 @@ abstract class ApplicationComponent
 {
   protected $app;
   
-  public function __construct(Application $app)
+  public function __construct(App $app)
   {
     $this->app = $app;
   }

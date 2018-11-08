@@ -9,7 +9,7 @@
 namespace Core\App;
 
 
-abstract class App
+class App
 {
   protected $user;
   protected $router;

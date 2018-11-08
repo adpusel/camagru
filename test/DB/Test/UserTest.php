@@ -21,11 +21,13 @@ use DatabaseTesting\ConvertArrayToDBUnitTable;
 define('ROOT', 'Applications/mappstack-7.1.22-1/apache2/htdocs/42/camagru');
 
 class UserTest extends Generic_Tests_DatabaseTestCase
+
 {
   protected $userController;
   protected $request;
   protected $link_inscription;
   protected $form;
+  protected $page;
 
 
   public function getDataSet()
@@ -34,8 +36,11 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	  __DIR__ . "/../../resources/database.ini");
 
 	// init mes objets
-	$this->userController = new UserController();
+	$app = new Core\App\App("a", "a", "", "", "", "");
+
+	$this->userController = new UserController($app, "a", "a");
 	$this->request = new HTTPRequest();
+	$this->page = $this->userController->getPage();
 
 	$userEntity = new UserEntity([
 	  'email'    => 'adrien@gmail.com',
@@ -86,14 +91,18 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$formStr = $this->get_form_fill_render();
 
 	$this->assertSame(
-	  $formStr,
+	  true,
 	  $this
 		->userController
 		->inscription($this->request)
 	);
+	$this->assertSame(
+	  $formStr,
+	  $this->page->getVars('form')
+	);
+
 
   }
-
 
   public function testInscriptionNewUser()
   {
@@ -121,8 +130,12 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	]);
 
 	$this->assertSame(
-	  $this->get_form_fill_render(true),
+	  false,
 	  $this->userController->inscription($this->request)
+	);
+	$this->assertSame(
+	  $this->get_form_fill_render(true),
+	  $this->page->getVars('form')
 	);
   }
 
@@ -134,11 +147,15 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	]);
 
 	$this->assertSame(
-	  $this->get_form_fill_render(true),
+	  false,
 	  $this->userController->inscription($this->request)
 	);
-  }
 
+	$this->assertSame(
+	  $this->get_form_fill_render(true),
+	  $this->page->getVars('form')
+	);
+  }
 
   public function test_good_check_link()
   {
@@ -178,9 +195,9 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$this->assertSame(false, $user->isCheck());
   }
 
-  public function test_delete_user( )
+  public function test_delete_user()
   {
-	
+
   }
 
 }

@@ -17,21 +17,6 @@ use const ROOT;
 class UserController extends Controller
 {
 
-  /**
-   * @return UserModel
-   */
-  public function getModel(): UserModel
-  {
-	return $this->model;
-  }
-
-
-  public function __construct(App $app)
-  {
-	parent::__construct($app);
-	$this->model = new UserModel();
-  }
-
   private function _initEntityWithForm(HTTPRequest $request)
   {
 	$userEntety = new UserEntity();
@@ -89,10 +74,11 @@ class UserController extends Controller
 	$form = $formBuilder->build();
 
 	// si get je stop et retourn un form tout beau
-    if ($request->method() === 'GET')
+	if ($request->method() === 'GET')
 	{
 	  $view = $form->createView();
-	  return $view;
+	  $this->addToPage('form', $view);
+	  return true;
 	}
 
 	// check si l'user n'existe pas deja je fais un message flash
@@ -103,7 +89,10 @@ class UserController extends Controller
 
 	// TODO : return le form
 	if ($form->isValid() === false)
-	  return $form->createView();
+	{
+	  $this->addToPage('form', $form->createView());
+	  return false;
+	}
 
 	$userEntity
 	  ->generateEmailCheck()
@@ -119,6 +108,7 @@ class UserController extends Controller
 
 	$userEntity->setId($this->model->lastInsertId());
 	// send le mail de verification
+
 	if ($this->_sendInscriptionEmail($userEntity) === false)
 	  return new \Exception('le mailer ne marche pas');
 
