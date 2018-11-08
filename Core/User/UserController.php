@@ -7,6 +7,7 @@
 
 namespace Core\User;
 
+use Core\Http\HTTPRequest;
 use Core\Mail\PhpMail;
 use Core\User\HTML\UserFormBuilder;
 use function link;
@@ -14,10 +15,6 @@ use const ROOT;
 
 class UserController
 {
-  /**
-   * @var PhpMail
-   */
-  private $mailer;
   private $model;
 
   /**
@@ -56,11 +53,12 @@ class UserController
 	return $mailer->sendEmail();
   }
 
-  public function inscription_check($data)
+  public function inscription_check(HTTPRequest $request)
   {
-	$user = $this->model->fetchOne($data['id']);
+	$user = $this->model->fetchOne($request->getData('id'));
+
 	// TODO : redirect si pas de user
-	if ($user->sameCheck($data['token']))
+	if ($user->sameCheck($request->getData('token')))
 	{
 	  $this->model->modify([
 		'id'       => $user->id,
@@ -71,13 +69,26 @@ class UserController
 	return false;
   }
 
-  // construire un form avec mon entity que je viens de faire
+  private function initEntityWithForm(HTTPRequest $request)
+  {
+	$userEntety = new UserEntity();
+
+	// j'hydrante mon entity si post
+	if ($request->method() === 'POST')
+	  $userEntety->hydrate($request->getAllPost());
+	return $userEntety;
+  }
+
+  // get en post les data
+  //
   // si je suis en post je test les data
   // si les data sont ok je save
   // je retourne false
-  public function inscription(UserEntity $userEntity)
+  public function inscription(HTTPRequest $request)
   {
-	$y = 1;
+	// si pas post
+	$userEntity = $this->initEntityWithForm($request);
+
 	// check si l'user n'existe pas deja
 	$isNew = $this->model->userExist($userEntity->email);
 	if ($isNew !== false)

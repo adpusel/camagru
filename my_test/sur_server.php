@@ -37,7 +37,7 @@ MySqlDatabase::getInstance(
 //  'contenu' => $request->postData('contenu')
 //else
 //{
-
+var_dump($_SERVER['REQUEST_METHOD']);
 $_POST["lolo"] = 1;
 var_dump($_POST);
 

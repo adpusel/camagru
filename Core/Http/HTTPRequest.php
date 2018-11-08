@@ -1,7 +1,7 @@
 <?php
 namespace Core\Http;
 
-class HTTPRequest extends ApplicationComponent
+class HTTPRequest /*extends ApplicationComponent*/
 {
   public function cookieData($key)
   {
@@ -41,5 +41,16 @@ class HTTPRequest extends ApplicationComponent
   public function requestURI()
   {
     return $_SERVER['REQUEST_URI'];
+  }
+
+  public function getAllPost()
+  {
+	return $_POST;
+  }
+  public function __get($name)
+  {
+	$name_func = 'get' . ucfirst($name);
+//	if (method_exists(true, $name_func))
+	return $this->$name_func();
   }
 }
