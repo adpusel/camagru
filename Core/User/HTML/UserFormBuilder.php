@@ -49,6 +49,16 @@ class UserFormBuilder extends FormBuilder
 		  new NotNullValidator('Merci de spécifier l\'auteur du commentaire'),
 		  new PasswordValidator('le mot de pass doit faire min 8 avec nb, et maj')
 		]
-	  ]));
+	  ]))
+	->add(new InputField([
+	'label'      => 'Login',
+	'name'       => 'login',
+	'maxLength'  => 15,
+	'validators' => [
+	  new MaxLengthValidator('L\'auteur spécifié est trop long (50 caractères maximum',
+		50),
+	  new NotNullValidator('Merci de spécifier l\'auteur du commentaire'),
+	]
+  ]));
   }
 }

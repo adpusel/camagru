@@ -19,7 +19,24 @@ class UserEntity extends Entity
 	$password = '',
 	$email_check = '',
 	$hash = '',
+	$login = '',
 	$is_check = false;
+
+  /**
+   * @return string
+   */
+  public function getLogin(): string
+  {
+	return $this->login;
+  }
+
+  /**
+   * @param string $login
+   */
+  public function setLogin(string $login): void
+  {
+	$this->login = $login;
+  }
 
   /**
    * @return bool

@@ -45,7 +45,8 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
 	$userEntity = new UserEntity([
 	  'email'    => 'adrien@gmail.com',
-	  'password' => 'DDeuauaou888'
+	  'password' => 'DDeuauaou888',
+	  'login'    => 'toto'
 	]);
 
 	$userEntity
@@ -60,19 +61,21 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	  [
 		'Users' => [
 		  [
-			'email'       => 'adrien@gmail.com',
+			'email'       => $userEntity->email,
 			'hash'        => $userEntity->hash,
-			'email_check' => $userEntity->getEmailCheck()
+			'email_check' => $userEntity->getEmailCheck(),
+			'login'       => $userEntity->getLogin()
 		  ]
 		],
 	  ]
 	);
   }
 
-  private function setDataRequest($method, $arrayGet = [], $arrayPost = [])
+  private function setDataRequest($method, $data = [], $dataSession = [])
   {
-	$_GET = $arrayGet;
-	$_POST = $arrayPost;
+	if ($method === 'POST')
+	  $_POST = $data;
+	$_SESSION = $dataSession;
 	$_SERVER['REQUEST_METHOD'] = $method;
   }
 
@@ -107,9 +110,10 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function testInscriptionNewUser()
   {
-	$this->setDataRequest('POST', [], [
+	$this->setDataRequest('POST', [
 	  'email'    => 'adrien@prairial.com',
-	  'password' => 'DDeuauaou888'
+	  'password' => 'DDeuauaou888',
+	  'login' => 	'tata'
 	]);
 
 	// il garde le lien de confimation est dans $link_inscription
@@ -125,7 +129,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function test_inscription_new_user_bad_password()
   {
-	$this->setDataRequest('POST', [], [
+	$this->setDataRequest('POST', [
 	  'email'    => 'naa@aeu.com',
 	  'password' => 'aoeua'
 	]);
@@ -142,7 +146,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 
   public function test_inscription_new_user_bad_email()
   {
-	$this->setDataRequest('POST', [], [
+	$this->setDataRequest('POST', [
 	  'email'    => 'naa@aeucom',
 	  'password' => 'aoeuauGGGHH009a'
 	]);
@@ -196,12 +200,52 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$this->assertSame(false, $user->isCheck());
   }
 
-  public function test_delete_user()
+  /**
+   * @dataProvider deleteUserProvadier
+   */
+  public function test_delete_user($method, $dataSend, $dataSession,
+								   $expect, $entry)
   {
-	$this->setDataRequest('POST', [],
-	  ['id' => 1]);
+	$this->setDataRequest($method, $dataSend, $dataSession);
 
-	$this->userController->delete($this->request);
+	$this->assertSame($expect, $this->userController->delete($this->request));
+	$this->assertSame($entry,
+	  $this->getConnection()->getRowCount('Users'));
+
   }
 
+  public function deleteUserProvadier()
+  {
+	return [
+	  ['GET', ['id' => 1], [], false, 1],
+	  ['GET', [], ['id' => 1], false, 1],
+	  ['POST', [], ['id' => 1], false, 1],
+	  ['POST', ['id' => 1], ['id' => 1], false, 1],
+	  ['POST', ['id' => 1], ['id' => 1, 'auth' => true], true, 0],
+	];
+  }
+
+  public function testModifyDataUser()
+  {
+
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -18,6 +18,7 @@ class Model
   protected $attributes = [];
   protected $columns = [];
   protected $strColumn;
+
   /**
    * @var Database
    */

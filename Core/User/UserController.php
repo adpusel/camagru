@@ -27,6 +27,17 @@ class UserController extends Controller
 	return $userEntety;
   }
 
+  private function _isGoodUser($id)
+  {
+	$user = $this->app->getUser();
+
+	return
+	  $user->isAuthenticated() === true &&
+	  $user->getAttribute('id') === $id;
+
+
+  }
+
   private function _generateLink(UserEntity $userEntity, $action)
   {
 	$href =
@@ -102,7 +113,8 @@ class UserController extends Controller
 	  [
 		'email'       => $userEntity->getEmail(),
 		'hash'        => $userEntity->getHash(),
-		'email_check' => $userEntity->getEmailCheck()
+		'email_check' => $userEntity->getEmailCheck(),
+		'login'       => $userEntity->getLogin()
 	  ]
 	);
 
@@ -121,16 +133,15 @@ class UserController extends Controller
 	// je ne get que en post pour la seccurite
 	// je check si je suis bien le mec qui peux me supprimer
 	// dans session j'ai l'id et je check que j'ai le bon
-	$user = $this->app->getUser();
-	if ($user->isAuthenticated() && $request->method() === 'POST')
+	if (
+	  $request->method() === 'POST' &&
+	  $this->_isGoodUser($request->postData('id')) === true
+	)
 	{
-	  if ($user->getAttribute('id') === $request->postData('id'))
-	  {
-	    $this->model->delete($request->postData('id'));
-	    return true;
-		// TODO : set une redirection
-		// TODO : faire et tester le flash message
-	  }
+	  $this->model->delete($request->postData('id'));
+	  return true;
+	  // TODO : set une redirection
+	  // TODO : faire et tester le flash message
 	}
 	return false;
   }
