@@ -14,6 +14,8 @@ abstract class Controller extends ApplicationComponent
   protected $page = null;
   protected $view = '';
   protected $model = null;
+  protected $entity;
+  protected $form;
 
   public function __construct(App $app, $module, $action)
   {

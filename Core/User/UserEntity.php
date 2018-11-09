@@ -8,6 +8,7 @@
 
 namespace Core\User;
 
+use function array_merge;
 use Core\Model\Entity;
 
 class UserEntity extends Entity
@@ -21,6 +22,20 @@ class UserEntity extends Entity
 	$hash = '',
 	$login = '',
 	$is_check = false;
+
+  /**
+   * @return array
+   */
+  public function getDataGiven(array $askedFields): array
+  {
+	$ar  = [];
+	foreach ($askedFields as $askedField)
+	{
+	  $ar = array_merge($ar, $this->getKeyNameStr($askedField));
+    }
+	return $ar;
+  }
+
 
   /**
    * @return string

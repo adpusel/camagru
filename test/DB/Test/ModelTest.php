@@ -60,7 +60,8 @@ class ModelTest extends Generic_Tests_DatabaseTestCase
 
 	$this->model->create(
 	  [
-		'email' => $newUser['email'],
+
+	    'email' => $newUser['email'],
 		'hash'  => $newUser['hash'],
 		'login' => $newUser['login']
 	  ]

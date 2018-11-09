@@ -16,15 +16,18 @@ use const ROOT;
 
 class UserController extends Controller
 {
-
-  private function _initEntityWithForm(HTTPRequest $request)
+  private function _buildFormAndEntity(HTTPRequest $request)
   {
-	$userEntety = new UserEntity();
+	$this->entity = new UserEntity();
 
 	// j'hydrante mon entity si post
 	if ($request->method() === 'POST')
-	  $userEntety->hydrate($request->getAllPost());
-	return $userEntety;
+	  $this->entity->hydrate($request->getAllPost());
+
+	// build le form
+	$formBuilder = new UserFormBuilder($this->entity);
+	$this->form = $formBuilder->build();
+
   }
 
   private function _isGoodUser($id)
@@ -38,22 +41,22 @@ class UserController extends Controller
 
   }
 
-  private function _generateLink(UserEntity $userEntity, $action)
+  private function _generateLink(UserEntity $entity, $action)
   {
 	$href =
 	  ROOT .
 	  '/User' . '.' . $action . '?' .
-	  'id=' . $userEntity->getId() .
-	  '&token=' . $userEntity->getEmailCheck();
+	  'id=' . $entity->getId() .
+	  '&token=' . $entity->getEmailCheck();
 	return "<a href='$href'> CLICK </a>";
   }
 
-  private function _sendInscriptionEmail(UserEntity $userEntity)
+  private function _sendInscriptionEmail(UserEntity $entity)
   {
 	$mailer = new PhpMail(
-	  $userEntity->getEmail(),
+	  $entity->getEmail(),
 	  'Camagru',
-	  $this->_generateLink($userEntity, 'inscription_check'),
+	  $this->_generateLink($entity, 'inscription_check'),
 	  'Confirm inscription'
 	);
 	return $mailer->sendEmail();
@@ -77,62 +80,56 @@ class UserController extends Controller
 
   public function inscription(HTTPRequest $request)
   {
-	// init user et l'hydrate si post
-	$userEntity = $this->_initEntityWithForm($request);
-
-	// build le form
-	$formBuilder = new UserFormBuilder($userEntity);
-	$form = $formBuilder->build();
+	$this->_buildFormAndEntity($request);
 
 	// si get je stop et retourn un form tout beau
 	if ($request->method() === 'GET')
 	{
-	  $view = $form->createView();
+	  $view = $this->form->createView();
 	  $this->addToPage('form', $view);
 	  return true;
 	}
 
 	// check si l'user n'existe pas deja je fais un message flash
 	// TODO : le set dans mon err
-	$isNew = $this->model->userExist($userEntity->email);
+	$isNew = $this->model->userExist($this->entity->email);
 	if ($isNew !== false)
 	  return false;
 
 	// TODO : return le form
-	if ($form->isValid() === false)
+	if ($this->form->isValid() === false)
 	{
-	  $this->addToPage('form', $form->createView());
+	  $this->addToPage('form', $this->form->createView());
 	  return false;
 	}
 
-	$userEntity
+	$this->entity
 	  ->generateEmailCheck()
 	  ->generateHash();
 
 	$this->model->create(
-	  [
-		'email'       => $userEntity->getEmail(),
-		'hash'        => $userEntity->getHash(),
-		'email_check' => $userEntity->getEmailCheck(),
-		'login'       => $userEntity->getLogin()
-	  ]
+	  $this->entity->getDataGiven(
+		['email', 'hash', 'email_check', 'login']
+	  )
 	);
 
-	$userEntity->setId($this->model->lastInsertId());
-	// send le mail de verification
+	$this->entity->setId($this->model->lastInsertId());
 
-	if ($this->_sendInscriptionEmail($userEntity) === false)
+	// send le mail de verification
+	if ($this->_sendInscriptionEmail($this->entity) === false)
 	  return new \Exception('le mailer ne marche pas');
 
 	// ici je dois redirider
-	return "{$userEntity->getId()}.{$userEntity->getEmailCheck()}";
+	return "{$this->entity->getId()}.{$this->entity->getEmailCheck()}";
+  }
+
+  public function modify(HTTPRequest $request)
+  {
+
   }
 
   public function delete(HTTPRequest $request)
   {
-	// je ne get que en post pour la seccurite
-	// je check si je suis bien le mec qui peux me supprimer
-	// dans session j'ai l'id et je check que j'ai le bon
 	if (
 	  $request->method() === 'POST' &&
 	  $this->_isGoodUser($request->postData('id')) === true
@@ -145,6 +142,7 @@ class UserController extends Controller
 	}
 	return false;
   }
+
 
 }
 

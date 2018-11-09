@@ -33,9 +33,9 @@ class UserFormBuilder extends FormBuilder
 		'name'       => 'email',
 		'maxLength'  => 50,
 		'validators' => [
-		  new MaxLengthValidator('L\'auteur spécifié est trop long (50 caractères maximum',
+		  new MaxLengthValidator('trop long (50 caractères maximum',
 			50),
-		  new NotNullValidator('Merci de spécifier l\'auteur du commentaire'),
+		  new NotNullValidator('il faut en email'),
 		  new EmailValidator("Merci de taper un email correct")
 		]
 	  ]))
@@ -44,9 +44,9 @@ class UserFormBuilder extends FormBuilder
 		'name'       => 'password',
 		'maxLength'  => 50,
 		'validators' => [
-		  new MaxLengthValidator('L\'auteur spécifié est trop long (50 caractères maximum',
+		  new MaxLengthValidator('trop long (50 caractères maximum',
 			50),
-		  new NotNullValidator('Merci de spécifier l\'auteur du commentaire'),
+		  new NotNullValidator('il faut en email'),
 		  new PasswordValidator('le mot de pass doit faire min 8 avec nb, et maj')
 		]
 	  ]))
@@ -55,9 +55,9 @@ class UserFormBuilder extends FormBuilder
 	'name'       => 'login',
 	'maxLength'  => 15,
 	'validators' => [
-	  new MaxLengthValidator('L\'auteur spécifié est trop long (50 caractères maximum',
+	  new MaxLengthValidator('trop long (50 caractères maximum',
 		50),
-	  new NotNullValidator('Merci de spécifier l\'auteur du commentaire'),
+	  new NotNullValidator('il faut en email'),
 	]
   ]));
   }

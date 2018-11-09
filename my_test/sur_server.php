@@ -58,5 +58,11 @@
 //echo "</form>";
 
 
-new PDOException('allala');
-new Exception('aeuiaeu');
+
+function g($var)
+{
+  $$var = $var;
+  $a = $this->$$var;
+  $b = [$var => $a];
+  return ;
+}

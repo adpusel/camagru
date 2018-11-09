@@ -14,8 +14,10 @@ class Entity implements \ArrayAccess
 {
   use Hydrator;
 
-  protected $erreurs = [],
-	$id;
+  protected
+	$erreurs = [],
+	$id,
+	$dataGiven = [];
 
   public function __construct(array $donnees = [])
   {

@@ -100,6 +100,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 		->userController
 		->inscription($this->request)
 	);
+
 	$this->assertSame(
 	  $formStr,
 	  $this->page->getVars('form')
