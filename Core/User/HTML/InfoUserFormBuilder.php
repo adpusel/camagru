@@ -18,14 +18,10 @@ use Core\Validator\MaxLengthValidator;
 use Core\Validator\NotNullValidator;
 use Core\Validator\PasswordValidator;
 
-class UserFormBuilder extends FormBuilder
+class InfoUserFormBuilder extends FormBuilder
 {
-  public function __construct(Entity $entity)
-  {
-	parent::__construct($entity);
-  }
 
-  public function build() : Form
+  public function build(): Form
   {
 	return $this->form
 	  ->add(new InputField([
@@ -50,15 +46,15 @@ class UserFormBuilder extends FormBuilder
 		  new PasswordValidator('le mot de pass doit faire min 8 avec nb, et maj')
 		]
 	  ]))
-	->add(new InputField([
-	'label'      => 'Login',
-	'name'       => 'login',
-	'maxLength'  => 15,
-	'validators' => [
-	  new MaxLengthValidator('trop long (50 caractères maximum',
-		50),
-	  new NotNullValidator('il faut en email'),
-	]
-  ]));
+	  ->add(new InputField([
+		'label'      => 'Login',
+		'name'       => 'login',
+		'maxLength'  => 15,
+		'validators' => [
+		  new MaxLengthValidator('trop long (50 caractères maximum',
+			50),
+		  new NotNullValidator('il faut en email'),
+		]
+	  ]));
   }
 }

@@ -13,6 +13,10 @@ use Core\Model\Model;
 
 class UserModel extends Model
 {
+
+ const EXISTING_EMAIL = 'Cet email existe deja';
+ const EXISTING_LOGIN = 'Ce login existe deja';
+
   public function userExist(string $email)
   {
 	return $this
@@ -20,6 +24,18 @@ class UserModel extends Model
 	  ->query(
 	    'SELECT email FROM Users WHERE email = :email',
 		['email' => $email],
+		$this->entity,
+		true
+	  );
+  }
+
+  public function loginExist(string $login)
+  {
+	return $this
+	  ->database
+	  ->query(
+		'SELECT login FROM Users WHERE login = :login',
+		['login' => $login],
 		$this->entity,
 		true
 	  );

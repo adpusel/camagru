@@ -8,9 +8,6 @@
 use Core\Database\MySqlDatabase;
 
 // permet de charger les config de testage de la db
-use Core\HTML\Form\Form;
-use Core\Http\HTTPRequest;
-use Core\User\HTML\UserFormBuilder;
 use Core\User\UserController;
 use Core\User\UserEntity;
 
@@ -21,50 +18,51 @@ use DatabaseTesting\ConvertArrayToDBUnitTable;
 define('ROOT', 'Applications/mappstack-7.1.22-1/apache2/htdocs/42/camagru');
 session_start();
 
-class UserTest extends Generic_Tests_DatabaseTestCase
-
+class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 {
   protected $userController;
   protected $request;
   protected $link_inscription;
   protected $form;
   protected $page;
+  protected $userEntity;
+  protected $app;
 
 
   public function getDataSet()
   {
 	MySqlDatabase::getInstance(
-	  __DIR__ . "/../../resources/database.ini");
+	  __DIR__ . "/../../../resources/database.ini");
 
 	// init mes objets
-	$app = new Core\App\App("a", "a");
+	$this->app = new Core\App\App("a", "a");
 
-	$this->userController = new UserController($app, "a", "a");
-	$this->request = $app->getHttpRequest();
+	$this->userController = new UserController($this->app, "a", "a");
+	$this->request = $this->app->getHttpRequest();
 	$this->page = $this->userController->getPage();
 
-	$userEntity = new UserEntity([
+	$this->userEntity = new UserEntity([
 	  'email'    => 'adrien@gmail.com',
 	  'password' => 'DDeuauaou888',
 	  'login'    => 'toto'
 	]);
 
-	$userEntity
+	$this->userEntity
 	  ->generateEmailCheck()
 	  ->generateHash();
 	$this->link_inscription = [
 	  'id'    => 1,
-	  'token' => $userEntity->getEmailCheck(),
+	  'token' => $this->userEntity->getEmailCheck(),
 	];
 
 	return new ConvertArrayToDBUnitTable(
 	  [
 		'Users' => [
 		  [
-			'email'       => $userEntity->email,
-			'hash'        => $userEntity->hash,
-			'email_check' => $userEntity->getEmailCheck(),
-			'login'       => $userEntity->getLogin()
+			'email'       => $this->userEntity->email,
+			'hash'        => $this->userEntity->hash,
+			'email_check' => $this->userEntity->getEmailCheck(),
+			'login'       => $this->userEntity->getLogin()
 		  ]
 		],
 	  ]
@@ -79,9 +77,10 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$_SERVER['REQUEST_METHOD'] = $method;
   }
 
-  private function get_form_fill_render(bool $do_check = false)
+  private function _get_form_fill_render($formName, bool $do_check = false)
   {
-	$form = (new UserFormBuilder(new UserEntity($_POST)))->build();
+	$builderName = 'Core\User\HTML\\' . $formName . 'FormBuilder';
+	$form = (new $builderName(new UserEntity($_POST)))->build();
 	if ($do_check)
 	  $form->isValid();
 	return $form->createView();
@@ -92,7 +91,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$this->setDataRequest('GET');
 
 	// new form str
-	$formStr = $this->get_form_fill_render();
+	$formStr = $this->_get_form_fill_render('InfoUser');
 
 	$this->assertSame(
 	  true,
@@ -114,17 +113,43 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	$this->setDataRequest('POST', [
 	  'email'    => 'adrien@prairial.com',
 	  'password' => 'DDeuauaou888',
-	  'login' => 	'tata'
+	  'login'    => 'tata'
 	]);
 
 	// il garde le lien de confimation est dans $link_inscription
 	$this->assertInternalType('string',
 	  $this->userController->inscription($this->request));
 
-	// TODO : tester avec le message flash
-	// test avec le meme mail
+  }
+
+  // TODO : need testing if the form is filled with last tapping
+  public function testInscriptionExisting()
+  {
+	// test same mail
+	$this->setDataRequest('POST', [
+	  'email'    => $this->userEntity->email,
+	  'password' => 'DDeuauaou888',
+	  'login'    => 'auau'
+	]);
+
 	$this->assertSame(false,
 	  $this->userController->inscription($this->request));
+
+	$this->assertSame(UserModel::EXISTING_EMAIL,
+	  $this->app->getUser()->getFlash());
+
+	// test same login
+	$this->setDataRequest('POST', [
+	  'email'    => 'bob@ema.com',
+	  'password' => 'DDeuauaou888',
+	  'login'    => $this->userEntity->login
+	]);
+
+	$this->assertSame(false,
+	  $this->userController->inscription($this->request));
+
+	$this->assertSame(UserModel::EXISTING_LOGIN,
+	  $this->app->getUser()->getFlash());
 
   }
 
@@ -140,7 +165,7 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	  $this->userController->inscription($this->request)
 	);
 	$this->assertSame(
-	  $this->get_form_fill_render(true),
+	  $this->_get_form_fill_render('InfoUser', true),
 	  $this->page->getVars('form')
 	);
   }
@@ -149,7 +174,8 @@ class UserTest extends Generic_Tests_DatabaseTestCase
   {
 	$this->setDataRequest('POST', [
 	  'email'    => 'naa@aeucom',
-	  'password' => 'aoeuauGGGHH009a'
+	  'password' => 'aoeuauGGGHH009a',
+	  'login'    => 'al'
 	]);
 
 	$this->assertSame(
@@ -158,7 +184,12 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	);
 
 	$this->assertSame(
-	  $this->get_form_fill_render(true),
+	  $this->_get_form_fill_render('InfoUser', true),
+	  $this->page->getVars('form')
+	);
+
+	$this->assertSame(
+	  $this->_get_form_fill_render('InfoUser', true),
 	  $this->page->getVars('form')
 	);
   }
@@ -226,10 +257,89 @@ class UserTest extends Generic_Tests_DatabaseTestCase
 	];
   }
 
-  public function testModifyDataUser()
-  {
 
+  public function ModifyDataUserProvider()
+  {
+	return [
+	  ['GET', [], [], false, false, false],
+	  //	  ['POST', [], [], false, false, false],
+	];
   }
+
+
+//  /**
+//   * @dataProvider ModifyDataUserProvider
+//   */
+//  public function testModifyDataUser($method, $dataSend, $dataSession, $expect,
+//									 $sqlRes, $checkForm)
+//  {
+//	$this->setDataRequest($method, $dataSend, $dataSession);
+//
+//	// res Controller function
+//	$this->assertSame($expect, $this->userController->modify($this->request));
+//
+//	// compare table MySql
+//	if ($sqlRes !== false)
+//	  $this->assertSame($sqlRes,
+//		$this->getConnection()->getRowCount('Users'));
+//
+//	// compare page
+//	$this->assertSame($this->_get_form_fill_render('InfoUser',$checkForm),
+//	  $this->page->getVars('form'));
+//
+//	// tester s`il est connecte
+//
+//	//
+//	// changer pass
+//
+//	// changer le mail
+//
+//	// changer le pseudo --> is libre
+//
+//	// si a
+//  }
+//
+
+  public function LoginUserProvider()
+  {
+	return [
+	  ['GET', [], [], true, false, false],
+	  //	  ['POST', [], [], false, false, false],
+	];
+  }
+
+  /**
+   * @dataProvider LoginUserProvider
+   */
+  public function testLoginUser($method, $dataSend, $dataSession, $expect,
+								$sqlRes, $checkForm)
+  {
+	$this->setDataRequest($method, $dataSend, $dataSession);
+
+	// res Controller function
+	$this->assertSame($expect, $this->userController->login($this->request));
+
+	// compare table MySql
+	if ($sqlRes !== false)
+	  $this->assertSame($sqlRes,
+		$this->getConnection()->getRowCount('Users'));
+
+	// compare page
+	$this->assertSame($this->_get_form_fill_render('LoginUser', $checkForm),
+	  $this->page->getVars('form'));
+
+	// tester s`il est connecte
+
+	//
+	// changer pass
+
+	// changer le mail
+
+	// changer le pseudo --> is libre
+
+	// si a
+  }
+
 }
 
 

@@ -7,16 +7,14 @@
 
 namespace Core\User;
 
-use Core\App\App;
 use Core\Controller\Controller;
 use Core\Http\HTTPRequest;
 use Core\Mail\PhpMail;
-use Core\User\HTML\UserFormBuilder;
 use const ROOT;
 
 class UserController extends Controller
 {
-  private function _buildFormAndEntity(HTTPRequest $request)
+  private function _buildFormAndEntity(HTTPRequest $request, string $formName)
   {
 	$this->entity = new UserEntity();
 
@@ -25,20 +23,32 @@ class UserController extends Controller
 	  $this->entity->hydrate($request->getAllPost());
 
 	// build le form
-	$formBuilder = new UserFormBuilder($this->entity);
+	$builderName = 'Core\User\HTML\\' . $formName . 'FormBuilder';
+	$formBuilder = new $builderName($this->entity);
 	$this->form = $formBuilder->build();
 
   }
 
+  // TODO : i think this need to be a trait
   private function _isGoodUser($id)
   {
 	$user = $this->app->getUser();
-
 	return
 	  $user->isAuthenticated() === true &&
 	  $user->getAttribute('id') === $id;
+  }
 
+  private function _initFormAndCatchGet(HTTPRequest $request, string $viewName)
+  {
+	$this->_buildFormAndEntity($request, $viewName);
 
+	// si get je stop et retourn un form tout beau
+	if ($request->method() === 'GET')
+	{
+	  $view = $this->form->createView();
+	  $this->addToPage('form', $view);
+	  return true;
+	}
   }
 
   private function _generateLink(UserEntity $entity, $action)
@@ -62,6 +72,31 @@ class UserController extends Controller
 	return $mailer->sendEmail();
   }
 
+  private function _isUniqueLogAndMail()
+  {
+	$res = true;
+	$isNew = $this->model->userExist($this->entity->email);
+	if ($isNew !== false)
+	{
+	  $this->app->getUser()->setFlash(UserModel::EXISTING_EMAIL);
+	  $res = false;
+	}
+
+	$isNew = $this->model->loginExist($this->entity->login);
+	if ($isNew !== false)
+	{
+	  $this->app->getUser()->setFlash(UserModel::EXISTING_LOGIN);
+	  $res = false;
+	}
+
+	if ($res === false)
+	{
+	  $this->addToPage('form', $this->form->createView());
+	  return false;
+	}
+	return true;
+  }
+
   public function inscription_check(HTTPRequest $request)
   {
 	$user = $this->model->fetchOne($request->getData('id'));
@@ -80,23 +115,12 @@ class UserController extends Controller
 
   public function inscription(HTTPRequest $request)
   {
-	$this->_buildFormAndEntity($request);
-
-	// si get je stop et retourn un form tout beau
-	if ($request->method() === 'GET')
-	{
-	  $view = $this->form->createView();
-	  $this->addToPage('form', $view);
+	if ($this->_initFormAndCatchGet($request, "InfoUser") === true)
 	  return true;
-	}
 
-	// check si l'user n'existe pas deja je fais un message flash
-	// TODO : le set dans mon err
-	$isNew = $this->model->userExist($this->entity->email);
-	if ($isNew !== false)
+	if ($this->_isUniqueLogAndMail() === false)
 	  return false;
 
-	// TODO : return le form
 	if ($this->form->isValid() === false)
 	{
 	  $this->addToPage('form', $this->form->createView());
@@ -119,12 +143,40 @@ class UserController extends Controller
 	if ($this->_sendInscriptionEmail($this->entity) === false)
 	  return new \Exception('le mailer ne marche pas');
 
-	// ici je dois redirider
+	// TODO : faire les redirections
 	return "{$this->entity->getId()}.{$this->entity->getEmailCheck()}";
+  }
+
+  public function login(HTTPRequest $request)
+  {
+	if ($this->_initFormAndCatchGet($request, "InfoUser") === true)
+	  return true;
+
+	if ($request->method() === 'GET')
+	{
+	  $view = $this->form->createView();
+	  $this->addToPage('form', $view);
+	  return true;
+	}
   }
 
   public function modify(HTTPRequest $request)
   {
+	if ($this->_initFormAndCatchGet($request, "ModifyUser") === true)
+	  return true;
+
+	if ($request->method() === 'GET')
+	{
+	  $view = $this->form->createView();
+	  $this->addToPage('form', $view);
+	  return true;
+	}
+
+	// TODO : redirection with flash
+	if ($this->_isGoodUser($request->postData('id')) === false)
+	{
+	  return false;
+	}
 
   }
 
