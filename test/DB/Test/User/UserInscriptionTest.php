@@ -28,6 +28,12 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
   protected $userEntity;
   protected $app;
 
+  const USERS = [
+	'email'    => 'adrien@gmail.com',
+	'password' => 'DDeuauaou888',
+	'login'    => 'toto'
+  ];
+
 
   public function getDataSet()
   {
@@ -41,11 +47,9 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	$this->request = $this->app->getHttpRequest();
 	$this->page = $this->userController->getPage();
 
-	$this->userEntity = new UserEntity([
-	  'email'    => 'adrien@gmail.com',
-	  'password' => 'DDeuauaou888',
-	  'login'    => 'toto'
-	]);
+	$this->userEntity = new UserEntity(
+	  self::USERS
+	);
 
 	$this->userEntity
 	  ->generateEmailCheck()
@@ -63,11 +67,18 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 			'hash'        => $this->userEntity->hash,
 			'email_check' => $this->userEntity->getEmailCheck(),
 			'login'       => $this->userEntity->getLogin()
+		  ],
+		  [
+			'email'   => 'test@gmail.com',
+			'hash'    => $this->userEntity->hash,
+			'login'   => 'test',
+			'checked' => 1
 		  ]
 		],
 	  ]
 	);
   }
+
 
   private function setDataRequest($method, $data = [], $dataSession = [])
   {
@@ -77,21 +88,31 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	$_SERVER['REQUEST_METHOD'] = $method;
   }
 
-  private function _get_form_fill_render($formName, bool $do_check = false)
+
+  private function _get_form_fill_render(array $d)
   {
-	$builderName = 'Core\User\HTML\\' . $formName . 'FormBuilder';
-	$form = (new $builderName(new UserEntity($_POST)))->build();
-	if ($do_check)
+	$builderName = 'Core\User\HTML\\' . $d['name'] . 'FormBuilder';
+
+	if ($d['type'] === 'fresh')
+	  $form = (new $builderName(new UserEntity()))->build();
+	elseif ($d['type'] === 'post')
+	  $form = (new $builderName(new UserEntity($_POST)))->build();
+	else
+	  $form = (new $builderName(new UserEntity($d['type'])))->build();
+
+	if (isset($d['check']))
 	  $form->isValid();
 	return $form->createView();
   }
+
 
   public function testGetIncriptionPage()
   {
 	$this->setDataRequest('GET');
 
 	// new form str
-	$formStr = $this->_get_form_fill_render('InfoUser');
+	$formStr = $this->_get_form_fill_render([
+	  'name' => 'InfoUser', 'type' => 'fresh']);
 
 	$this->assertSame(
 	  true,
@@ -104,9 +125,8 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	  $formStr,
 	  $this->page->getVars('form')
 	);
-
-
   }
+
 
   public function testInscriptionNewUser()
   {
@@ -121,6 +141,7 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	  $this->userController->inscription($this->request));
 
   }
+
 
   // TODO : need testing if the form is filled with last tapping
   public function testInscriptionExisting()
@@ -153,6 +174,7 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 
   }
 
+
   public function test_inscription_new_user_bad_password()
   {
 	$this->setDataRequest('POST', [
@@ -165,10 +187,12 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	  $this->userController->inscription($this->request)
 	);
 	$this->assertSame(
-	  $this->_get_form_fill_render('InfoUser', true),
+	  $this->_get_form_fill_render([
+		'name' => 'InfoUser', 'type' => 'post', 'check' => true]),
 	  $this->page->getVars('form')
 	);
   }
+
 
   public function test_inscription_new_user_bad_email()
   {
@@ -184,15 +208,12 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	);
 
 	$this->assertSame(
-	  $this->_get_form_fill_render('InfoUser', true),
-	  $this->page->getVars('form')
-	);
-
-	$this->assertSame(
-	  $this->_get_form_fill_render('InfoUser', true),
+	  $this->_get_form_fill_render([
+		'name' => 'InfoUser', 'type' => 'post', 'check' => true]),
 	  $this->page->getVars('form')
 	);
   }
+
 
   public function test_good_check_link()
   {
@@ -208,8 +229,9 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	  ->fetchOne($this->request->getData('id'));
 
 	// est il bien valide
-	$this->assertSame(true, $user->isCheck());
+	$this->assertSame(true, $user->getChecked());
   }
+
 
   public function test_bad_check_link()
   {
@@ -229,8 +251,21 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	  ->fetchOne($this->request->getData('id'));
 
 	// check si check est toujours false
-	$this->assertSame(false, $user->isCheck());
+	$this->assertSame(false, $user->getChecked());
   }
+
+
+  public function deleteUserProvadier()
+  {
+	return [
+	  ['GET', ['id' => 1], [], false, 2],
+	  ['GET', [], ['id' => 1], false, 2],
+	  ['POST', [], ['id' => 1], false, 2],
+	  ['POST', ['id' => 1], ['id' => 1], false, 2],
+	  ['POST', ['id' => 1], ['id' => 1, 'auth' => true], true, 1],
+	];
+  }
+
 
   /**
    * @dataProvider deleteUserProvadier
@@ -246,101 +281,162 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 
   }
 
-  public function deleteUserProvadier()
+
+  public function LoginUserProvider()
   {
-	return [
-	  ['GET', ['id' => 1], [], false, 1],
-	  ['GET', [], ['id' => 1], false, 1],
-	  ['POST', [], ['id' => 1], false, 1],
-	  ['POST', ['id' => 1], ['id' => 1], false, 1],
-	  ['POST', ['id' => 1], ['id' => 1, 'auth' => true], true, 0],
-	];
+	return
+	  [
+		//	   get method
+		[['method' => 'GET', 'expect' => true,
+		  'form'   => ['name' => 'LoginUser', 'check' => false,
+					   'type' => 'fresh']]],
+
+		// next bad creditial
+		[['method' => 'POST', 'expect' => false,
+		  'form'   => ['name' => 'LoginUser', 'check' => false,
+					   'type' => 'fresh'],
+		  'flash'  => UserController::BAD_CREDITIAL]],
+
+		[['method' => 'POST', 'expect' => false,
+		  'data'   => ['password' => 'aoeuau'],
+		  'form'   => ['name' => 'LoginUser', 'check' => false,
+					   'type' => 'fresh'],
+		  'flash'  => UserController::BAD_CREDITIAL]],
+
+		[['method' => 'POST', 'expect' => false,
+		  'data'   => ['password' => 'aoeuau', 'login' => 'auaoeuoeu'],
+		  'form'   => ['name' => 'LoginUser', 'check' => false,
+					   'type' => 'fresh'],
+		  'flash'  => UserController::BAD_CREDITIAL]],
+
+		// not checked
+		[['method' => 'POST', 'expect' => false,
+		  'data'   => ['password' => self::USERS['password'],
+					   'login'    => self::USERS['login']],
+		  'flash'  => UserController::EMAIL_NOT_CONFIRM]],
+
+		// checked
+		[['method'  => 'POST', 'expect' => true,
+		  'checked' => true,
+		  'data'    => ['password' => self::USERS['password'],
+						'login'    => 'test'],
+		  'flash'   => UserController::CONNECTION]],
+
+	  ];
+  }
+
+
+  /**
+   * @dataProvider LoginUserProvider
+   */
+  public function testLoginUser($d)
+  {
+	$this->setDataRequest($d['method'],
+	  isset($d['data']) ? $d['data'] : [],
+	  isset($d['session']) ? $d['session'] : []);
+
+	if (isset($d['checked']))
+	  MySqlDatabase::query("
+			UPDATE Users SET checked = TRUE 
+			WHERE id = 2",
+		[]);
+
+	// res Controller function
+	$this->assertSame($d['expect'],
+	  $this->userController->login($this->request));
+
+	// compare table MySql
+	if (isset($d['tableSql']))
+	  $this->assertSame($d['tableSql'],
+		$this->getConnection()->getRowCount('Users'));
+
+	// compare page
+	if (isset($d['form']))
+	{
+	  $this->assertSame(
+		$this->_get_form_fill_render($d['form']),
+		$this->page->getVars('form'));
+	}
+
+	if (isset($d['flash']))
+	  $this->assertSame($d['flash'], $this->app->getUser()->getFlash());
+
+	if (isset($d['sessionCheck']))
+	  $this->assertSame($d['sessionCheck'], $_SESSION);
   }
 
 
   public function ModifyDataUserProvider()
   {
+	$user_test_1 = self::USERS;
+	unset($user_test_1['password']);
+
+	$dataEmail = [
+	  'email'    => 'lola@haha.com',
+	];
+
 	return [
-	  ['GET', [], [], false, false, false],
-	  //	  ['POST', [], [], false, false, false],
+	  //	   get not connected --> true redirection on login
+	  [['method' => 'GET', 'expect' => true,
+		'form'   => ['check' => false, 'name' => 'LoginUser',
+					 'type'  => 'fresh'],
+	   ]],
+
+	  // get connected // fill le frorm avec la bonne entity.
+	  [['method'  => 'GET', 'expect' => true,
+		'session' => ['auth' => true, 'id' => 1],
+		'form'    => ['name' => 'InfoUser',
+					  'type' => $user_test_1]
+	   ]],
+
+	  // test modification avec test de la db
+	  [['method'  => 'POST', 'expect' => true,
+		'session' => ['auth' => true, 'id' => 1],
+		'data'    => $dataEmail,
+		'form'    => ['name'  => 'InfoUser',
+					  'check' => false, 'type' => 'fresh'],
+//		'sql'     => $data_t2
+	   ]],
 	];
   }
 
-
-//  /**
-//   * @dataProvider ModifyDataUserProvider
-//   */
-//  public function testModifyDataUser($method, $dataSend, $dataSession, $expect,
-//									 $sqlRes, $checkForm)
-//  {
-//	$this->setDataRequest($method, $dataSend, $dataSession);
-//
-//	// res Controller function
-//	$this->assertSame($expect, $this->userController->modify($this->request));
-//
-//	// compare table MySql
-//	if ($sqlRes !== false)
-//	  $this->assertSame($sqlRes,
-//		$this->getConnection()->getRowCount('Users'));
-//
-//	// compare page
-//	$this->assertSame($this->_get_form_fill_render('InfoUser',$checkForm),
-//	  $this->page->getVars('form'));
-//
-//	// tester s`il est connecte
-//
-//	//
-//	// changer pass
-//
-//	// changer le mail
-//
-//	// changer le pseudo --> is libre
-//
-//	// si a
-//  }
-//
-
-  public function LoginUserProvider()
-  {
-	return [
-	  ['GET', [], [], true, false, false],
-	  //	  ['POST', [], [], false, false, false],
-	];
-  }
 
   /**
-   * @dataProvider LoginUserProvider
+   * @dataProvider ModifyDataUserProvider
    */
-  public function testLoginUser($method, $dataSend, $dataSession, $expect,
-								$sqlRes, $checkForm)
+  public function testModifyDataUser($d)
   {
-	$this->setDataRequest($method, $dataSend, $dataSession);
+	$this->setDataRequest($d['method'],
+	  isset($d['data']) ? $d['data'] : [],
+	  isset($d['session']) ? $d['session'] : []);
 
 	// res Controller function
-	$this->assertSame($expect, $this->userController->login($this->request));
+	$this->assertSame($d['expect'],
+	  $this->userController->modify($this->request));
 
 	// compare table MySql
-	if ($sqlRes !== false)
-	  $this->assertSame($sqlRes,
+	if (isset($d['sql']))
+	  $this->assertSame($d['sql'],
 		$this->getConnection()->getRowCount('Users'));
 
 	// compare page
-	$this->assertSame($this->_get_form_fill_render('LoginUser', $checkForm),
-	  $this->page->getVars('form'));
+	if (isset($d['form']))
+	{
+	  $this->assertSame(
+		$this->_get_form_fill_render($d['form']),
+		$this->page->getVars('form'));
+	}
 
-	// tester s`il est connecte
+	if (isset($d['flash']))
+	  $this->assertSame($d['flash'], $this->app->getUser()->getFlash());
 
-	//
-	// changer pass
-
-	// changer le mail
-
-	// changer le pseudo --> is libre
-
-	// si a
+	if (isset($d['sessionCheck']))
+	  $this->assertSame($d['sessionCheck'], $_SESSION);
   }
 
+
 }
+
 
 
 

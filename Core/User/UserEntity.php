@@ -21,9 +21,11 @@ class UserEntity extends Entity
 	$email_check = '',
 	$hash = '',
 	$login = '',
-	$is_check = false;
+	$checked = false;
 
   /**
+   * @param array $askedFields
+   *
    * @return array
    */
   public function getDataGiven(array $askedFields): array
@@ -56,17 +58,17 @@ class UserEntity extends Entity
   /**
    * @return bool
    */
-  public function isCheck(): bool
+  public function getChecked(): bool
   {
-	return $this->is_check;
+	return $this->checked;
   }
 
   /**
-   * @param bool $is_check
+   * @param bool $checked
    */
-  public function setIsCheck(bool $is_check): void
+  public function setChecked(bool $checked): void
   {
-	$this->is_check = $is_check;
+	$this->checked = $checked;
   }
 
   public function generateHash()

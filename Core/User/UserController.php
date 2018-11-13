@@ -10,24 +10,21 @@ namespace Core\User;
 use Core\Controller\Controller;
 use Core\Http\HTTPRequest;
 use Core\Mail\PhpMail;
+use function hash;
+use function print_r;
 use const ROOT;
 
 class UserController extends Controller
 {
-  private function _buildFormAndEntity(HTTPRequest $request, string $formName)
-  {
-	$this->entity = new UserEntity();
+  // ok
+  const CONNECTION = 'Vous etes connectez';
+  const MODIF_OK = 'Modification effectuees';
 
-	// j'hydrante mon entity si post
-	if ($request->method() === 'POST')
-	  $this->entity->hydrate($request->getAllPost());
+  // err
+  const BAD_CREDITIAL = 'Mauvais login || password';
+  const NAMESPACE_FORM = 'Core\User\HTML\\';
+  const EMAIL_NOT_CONFIRM = 'email non confime';
 
-	// build le form
-	$builderName = 'Core\User\HTML\\' . $formName . 'FormBuilder';
-	$formBuilder = new $builderName($this->entity);
-	$this->form = $formBuilder->build();
-
-  }
 
   // TODO : i think this need to be a trait
   private function _isGoodUser($id)
@@ -37,6 +34,24 @@ class UserController extends Controller
 	  $user->isAuthenticated() === true &&
 	  $user->getAttribute('id') === $id;
   }
+
+
+  private function _buildFormAndEntity(HTTPRequest $request, string $formName)
+  {
+	if ($this->entity === null)
+	  $this->entity = new UserEntity();
+
+	// j'hydrante mon entity si post
+	if ($request->method() === 'POST')
+	  $this->entity->hydrate($request->getAllPost());
+
+	// build le form
+	$builderName = self::NAMESPACE_FORM . $formName . 'FormBuilder';
+	$formBuilder = new $builderName($this->entity);
+	$this->form = $formBuilder->build();
+
+  }
+
 
   private function _initFormAndCatchGet(HTTPRequest $request, string $viewName)
   {
@@ -49,7 +64,10 @@ class UserController extends Controller
 	  $this->addToPage('form', $view);
 	  return true;
 	}
+	else
+	  return false;
   }
+
 
   private function _generateLink(UserEntity $entity, $action)
   {
@@ -61,6 +79,7 @@ class UserController extends Controller
 	return "<a href='$href'> CLICK </a>";
   }
 
+
   private function _sendInscriptionEmail(UserEntity $entity)
   {
 	$mailer = new PhpMail(
@@ -71,6 +90,7 @@ class UserController extends Controller
 	);
 	return $mailer->sendEmail();
   }
+
 
   private function _isUniqueLogAndMail()
   {
@@ -97,6 +117,7 @@ class UserController extends Controller
 	return true;
   }
 
+
   public function inscription_check(HTTPRequest $request)
   {
 	$user = $this->model->fetchOne($request->getData('id'));
@@ -105,13 +126,14 @@ class UserController extends Controller
 	if ($user->sameCheck($request->getData('token')))
 	{
 	  $this->model->modify([
-		'id'       => $user->id,
-		'is_check' => true
+		'id'      => $user->id,
+		'checked' => true
 	  ]);
 	  return true;
 	}
 	return false;
   }
+
 
   public function inscription(HTTPRequest $request)
   {
@@ -147,38 +169,74 @@ class UserController extends Controller
 	return "{$this->entity->getId()}.{$this->entity->getEmailCheck()}";
   }
 
+
   public function login(HTTPRequest $request)
   {
-	if ($this->_initFormAndCatchGet($request, "InfoUser") === true)
+	// TODO : rediriger si l'user est connecte
+	if ($this->_initFormAndCatchGet($request, "LoginUser") === true)
 	  return true;
 
-	if ($request->method() === 'GET')
+	$dbUser = $this->model->getUserByLogin($this->entity->login);
+	if (
+	  $dbUser &&
+	  $this->entity->_comparePassword($dbUser->hash) &&
+	  $dbUser->checked
+	)
 	{
-	  $view = $this->form->createView();
-	  $this->addToPage('form', $view);
+	  // TODO : redirect ici
+	  $this->app->getUser()->setFlash(self::CONNECTION);
 	  return true;
+	}
+
+	else
+	{
+	  //flash message
+	  if ($dbUser === false)
+		$this->app->getUser()->setFlash(self::BAD_CREDITIAL);
+	  else
+		$this->app->getUser()->setFlash(self::EMAIL_NOT_CONFIRM);
+
+	  // create new form
+	  $builderName = self::NAMESPACE_FORM . 'LoginUser' . 'FormBuilder';
+	  $form = (new $builderName(new UserEntity()))->build();
+	  $view = $form->createView();
+
+	  $this->addToPage('form', $view);
+	  return false;
 	}
   }
 
+
+  /**
+   * @param HTTPRequest $request
+   * c'est du bricolage mais je n'avais pas du tout prevu ca donc bon ...
+   *
+   * @return bool
+   */
   public function modify(HTTPRequest $request)
   {
-	if ($this->_initFormAndCatchGet($request, "ModifyUser") === true)
-	  return true;
-
-	if ($request->method() === 'GET')
+	// TODO : make redirection to login
+	if ($this->user->isAuthenticated() === false)
 	{
-	  $view = $this->form->createView();
-	  $this->addToPage('form', $view);
-	  return true;
+	  $this->entity = null;
+	  return $this->login($request);
 	}
 
-	// TODO : redirection with flash
-	if ($this->_isGoodUser($request->postData('id')) === false)
+	// TODO : make protection if not work
+	$this->entity = $this->model->fetchOne(
+	  $this->user->getAttribute('id'));
+
+	if ($this->_initFormAndCatchGet($request, "InfoUser") === true)
+	  return true;
+
+	if ($this->form->isValid(['email']) === false)
 	{
+	  $this->addToPage('form', $this->form->createView());
 	  return false;
 	}
 
   }
+
 
   public function delete(HTTPRequest $request)
   {
@@ -197,4 +255,30 @@ class UserController extends Controller
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

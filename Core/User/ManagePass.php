@@ -16,8 +16,8 @@ trait ManagePass
 	return password_hash($password, PASSWORD_DEFAULT);
   }
 
-  private function _comparePassword(string $password, string $hash)
+  public function _comparePassword(string $hash)
   {
-	return password_verify($password, $hash);
+	return password_verify($this->password, $hash);
   }
 }

@@ -14,15 +14,15 @@ use Core\Model\Model;
 class UserModel extends Model
 {
 
- const EXISTING_EMAIL = 'Cet email existe deja';
- const EXISTING_LOGIN = 'Ce login existe deja';
+  const EXISTING_EMAIL = 'Cet email existe deja';
+  const EXISTING_LOGIN = 'Ce login existe deja';
 
   public function userExist(string $email)
   {
 	return $this
 	  ->database
 	  ->query(
-	    'SELECT email FROM Users WHERE email = :email',
+		'SELECT email FROM Users WHERE email = :email',
 		['email' => $email],
 		$this->entity,
 		true
@@ -40,5 +40,26 @@ class UserModel extends Model
 		true
 	  );
   }
+
+  public function getUserById(int $id)
+  {
+	$fetchedUser = $this->fetchOne(
+	  [$id],
+	  $this->entity,
+	  true
+	);
+	return $fetchedUser;
+  }
+
+  public function getUserByLogin(string $login)
+  {
+	$fetchedUser = $this->fetchBy(
+	  ['login' => $login],
+	  $this->entity,
+	  true
+	);
+	return $fetchedUser;
+  }
+
 }
 

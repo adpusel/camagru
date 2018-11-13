@@ -16,6 +16,7 @@ abstract class Controller extends ApplicationComponent
   protected $model = null;
   protected $entity;
   protected $form;
+  protected $user;
 
   public function __construct(App $app, $module, $action)
   {
@@ -25,6 +26,7 @@ abstract class Controller extends ApplicationComponent
 	$this->model = new $modelName();
 	$this->page = new Page($app);
 
+	$this->user = $this->app->getUser();
 	$this->setModule($module);
 	$this->setAction($action);
 	$this->setView($action);

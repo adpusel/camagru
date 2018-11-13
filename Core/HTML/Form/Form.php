@@ -16,10 +16,12 @@ class Form
   protected $entity;
   protected $fields = [];
 
+
   public function __construct(Entity $entity)
   {
 	$this->setEntity($entity);
   }
+
 
   public function add(Field $field)
   {
@@ -30,6 +32,7 @@ class Form
 	$this->fields[] = $field;
 	return $this;
   }
+
 
   public function createView()
   {
@@ -44,28 +47,42 @@ class Form
 	return $view;
   }
 
-  public function isValid()
+
+  public function isValid($selectField = false)
   {
 	$valid = true;
 
-	// On vérifie que tous les champs sont valides.
-	foreach ($this->fields as $field)
+	if ($selectField)
 	{
-	  if (!$field->isValid())
+	  foreach ($this->fields as $field)
 	  {
-		$valid = false;
+		if (in_array($field->name(), $selectField) &&
+		  $field->isValid() === false
+		)
+		  $valid = false;;
 	  }
 	}
-
+	else
+	{
+	  foreach ($this->fields as $field)
+	  {
+		if (!$field->isValid())
+		  $valid = false;
+	  }
+	}
 	return $valid;
   }
 
-  public function entity()
+
+  public
+  function entity()
   {
 	return $this->entity;
   }
 
-  public function setEntity(Entity $entity)
+
+  public
+  function setEntity(Entity $entity)
   {
 	$this->entity = $entity;
   }

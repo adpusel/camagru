@@ -79,6 +79,20 @@ class Model
 	  );
   }
 
+  public function fetchBy(array $field)
+  {
+    $this->getColumnsAndAttributes($field);
+    return $this
+	  ->database
+	  ->query("
+		SELECT * FROM " . $this->table
+		. " WHERE {$this->strColumn}",
+		$this->attributes,
+		$this->entity,
+		true
+	  );
+  }
+
   public function fetchAll()
   {
 	return $this
