@@ -28,10 +28,16 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
   protected $userEntity;
   protected $app;
 
-  const USERS = [
+  const USERS_1 = [
 	'email'    => 'adrien@gmail.com',
 	'password' => 'DDeuauaou888',
 	'login'    => 'toto'
+  ];
+
+  const USERS_2 = [
+	'email'   => 'test@gmail.com',
+	'login'   => 'test',
+	'checked' => 1,
   ];
 
 
@@ -48,7 +54,7 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	$this->page = $this->userController->getPage();
 
 	$this->userEntity = new UserEntity(
-	  self::USERS
+	  self::USERS_1
 	);
 
 	$this->userEntity
@@ -69,9 +75,9 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 			'login'       => $this->userEntity->getLogin()
 		  ],
 		  [
-			'email'   => 'test@gmail.com',
+			'email'   => self::USERS_2['email'],
 			'hash'    => $this->userEntity->hash,
-			'login'   => 'test',
+			'login'   => self::USERS_2['login'],
 			'checked' => 1
 		  ]
 		],
@@ -101,12 +107,54 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	  $form = (new $builderName(new UserEntity($d['type'])))->build();
 
 	if (isset($d['check']))
-	  $form->isValid();
+	  $form->isValid($d['check']);
+
 	return $form->createView();
   }
 
 
-  public function testGetIncriptionPage()
+  public function launch(array $d, string $sql)
+  {
+	// set les var de GET POST ...
+	$this->setDataRequest($d['method'],
+	  isset($d['data']) ? $d['data'] : [],
+	  isset($d['session']) ? $d['session'] : []);
+
+	// res Controller function
+	$this->assertSame($d['expect'],
+	  $this->userController->modify($this->request));
+
+	// compare page
+	if (isset($d['form']))
+	{
+	  $this->assertSame(
+		$this->_get_form_fill_render($d['form']),
+		$this->page->getVars('form'));
+	}
+
+	if (isset($d['flash']))
+	  $this->assertSame($d['flash'], $this->app->getUser()->getFlash());
+
+	if (isset($d['sessionCheck']))
+	  $this->assertSame($d['sessionCheck'], $_SESSION);
+
+	// compare table MySql
+	if (isset($d['sql']))
+	{
+	  $queryTable = $this
+		->getConnection()
+		->createQueryTable(
+		  'Users', $sql
+		);
+
+	  $expectedTable =
+		$this->createArrayDataSet($d['sql'])->getTable('Users');
+	  $this->assertTablesEqual($expectedTable, $queryTable);
+	}
+  }
+
+
+  public function testGetInscriptionPage()
   {
 	$this->setDataRequest('GET');
 
@@ -188,7 +236,7 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 	);
 	$this->assertSame(
 	  $this->_get_form_fill_render([
-		'name' => 'InfoUser', 'type' => 'post', 'check' => true]),
+		'name' => 'InfoUser', 'type' => 'post', 'check' => []]),
 	  $this->page->getVars('form')
 	);
   }
@@ -209,7 +257,7 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 
 	$this->assertSame(
 	  $this->_get_form_fill_render([
-		'name' => 'InfoUser', 'type' => 'post', 'check' => true]),
+		'name' => 'InfoUser', 'type' => 'post', 'check' => []]),
 	  $this->page->getVars('form')
 	);
   }
@@ -311,14 +359,14 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
 
 		// not checked
 		[['method' => 'POST', 'expect' => false,
-		  'data'   => ['password' => self::USERS['password'],
-					   'login'    => self::USERS['login']],
+		  'data'   => ['password' => self::USERS_1['password'],
+					   'login'    => self::USERS_1['login']],
 		  'flash'  => UserController::EMAIL_NOT_CONFIRM]],
 
 		// checked
 		[['method'  => 'POST', 'expect' => true,
 		  'checked' => true,
-		  'data'    => ['password' => self::USERS['password'],
+		  'data'    => ['password' => self::USERS_1['password'],
 						'login'    => 'test'],
 		  'flash'   => UserController::CONNECTION]],
 
@@ -366,72 +414,156 @@ class UserInscriptionTest extends Generic_Tests_DatabaseTestCase
   }
 
 
-  public function ModifyDataUserProvider()
+  public function ModifyDataUserProvideInfo()
   {
-	$user_test_1 = self::USERS;
+	$mail = 'toto@gmail.com';
+	$log = 'naeu';
+
+	$user_test_1 = self::USERS_1;
 	unset($user_test_1['password']);
 
-	$dataEmail = [
-	  'email'    => 'lola@haha.com',
+	$badEmail = [
+	  'email' => 'lolahaha.com',
+	  'login' => self::USERS_1['login']
 	];
 
+	$sameEmail = [
+	  'email' => self::USERS_2['email'],
+	  'login' => self::USERS_1['login']
+	];
+
+	$sameLogin = [
+	  'email' => self::USERS_1['email'],
+	  'login' => self::USERS_2['login']
+	];
+
+	$goodNewLogAndEmail = [
+
+	  'email' => $mail,
+	  'login' => $log,
+	];
+
+	$bdNewGoodUser = ['Users' => [
+	  array_merge(['id' => 1], $goodNewLogAndEmail)]];
+
 	return [
-	  //	   get not connected --> true redirection on login
+	  //	  	  	   get not connected --> true redirection on login
 	  [['method' => 'GET', 'expect' => true,
-		'form'   => ['check' => false, 'name' => 'LoginUser',
+		'form'   => ['check' => false,
+					 'name'  => 'LoginUser',
 					 'type'  => 'fresh'],
 	   ]],
 
 	  // get connected // fill le frorm avec la bonne entity.
 	  [['method'  => 'GET', 'expect' => true,
 		'session' => ['auth' => true, 'id' => 1],
-		'form'    => ['name' => 'InfoUser',
+		'form'    => ['name' => 'ModifyUser',
 					  'type' => $user_test_1]
 	   ]],
 
-	  // test modification avec test de la db
+	  // bad mail
+	  [['method'  => 'POST', 'expect' => false,
+		'session' => ['auth' => true, 'id' => 1],
+		'data'    => $badEmail,
+		'form'    => ['name'  => 'ModifyUser',
+					  'check' => $badEmail,
+					  'type'  => $badEmail],
+	   ]],
+
+	  // same mail
+	  [['method'  => 'POST', 'expect' => false,
+		'session' => ['auth' => true, 'id' => 1],
+		'data'    => $sameEmail,
+		'form'    => ['name'  => 'ModifyUser',
+					  'check' => $sameEmail,
+					  'type'  => $sameEmail],
+		'flash'   => UserModel::EXISTING_EMAIL
+	   ]],
+
+	  //	  // TODO : i didn't test the form, i did up to but not perfect
+	  // same login
+	  [['method'  => 'POST', 'expect' => false,
+		'session' => ['auth' => true, 'id' => 1],
+		'data'    => $sameLogin,
+		//		'form'    => ['name'  => 'ModifyUser',
+		//					  'check' => $badLogin,
+		//					  'type'  => $badLogin],
+		'flash'   => UserModel::EXISTING_LOGIN
+	   ]],
+
 	  [['method'  => 'POST', 'expect' => true,
 		'session' => ['auth' => true, 'id' => 1],
-		'data'    => $dataEmail,
-		'form'    => ['name'  => 'InfoUser',
-					  'check' => false, 'type' => 'fresh'],
-//		'sql'     => $data_t2
+		'data'    => $goodNewLogAndEmail,
+		//		'form'    => ['name'  => 'ModifyUser',
+		//					  'check' => $badEmail,
+		//					  'type'  => $badEmail],
+		'sql'     => $bdNewGoodUser,
+	   ]],
+
+	];
+  }
+
+
+  /**
+   * @dataProvider ModifyDataUserProvideInfo
+   */
+  public function testModifyDataUserInfo(array $d)
+  {
+	$this->launch($d, 'SELECT id, email, login FROM Users WHERE id = 1');
+  }
+
+
+  public function ModifyDataUserProviderPass()
+  {
+
+	return [
+	  //	   good new mail and pass
+	  // TODO : for all the next i need to test the html form founded
+
+//	  // bad new pass
+//	  [['method'  => 'POST', 'expect' => false,
+//		'session' => ['auth' => true, 'id' => 1],
+//		'data'    => ['password' => 'aeuaoeu'],
+////		'form'    => [ 'name' => 'ModifyUser',
+////					   'type' => $user_test_1],
+//	   ]],
+//
+//	  // bad old pass
+//	  [['method'  => 'POST', 'expect' => false,
+//		'session' => ['auth' => true, 'id' => 1],
+//		'data'    => ['password' => 'aoeu778RRCHT', 'oldpassword' => 'auaou'],
+//		//		'form'    => [ 'name' => 'ModifyUser',
+//		//					   'type' => $user_test_1],
+//	   ]],
+
+	  // good new and old pass
+	  [['method'  => 'POST', 'expect' => true,
+		'session' => ['auth' => true, 'id' => 1],
+		'data'    => ['password' => 'aoeu778RRCHT', 'oldpassword' => 'DDeuauaou888'],
+		'check_hash' => true
+		//		'form'    => [ 'name' => 'ModifyUser',
+		//					   'type' => $user_test_1],
 	   ]],
 	];
   }
 
 
   /**
-   * @dataProvider ModifyDataUserProvider
+   * @dataProvider ModifyDataUserProviderPass
    */
-  public function testModifyDataUser($d)
+  public function testModifyDataUserPass(array $d)
   {
-	$this->setDataRequest($d['method'],
-	  isset($d['data']) ? $d['data'] : [],
-	  isset($d['session']) ? $d['session'] : []);
+	$this->launch($d, 'SELECT id, email, login FROM Users WHERE id = 1');
 
-	// res Controller function
-	$this->assertSame($d['expect'],
-	  $this->userController->modify($this->request));
-
-	// compare table MySql
-	if (isset($d['sql']))
-	  $this->assertSame($d['sql'],
-		$this->getConnection()->getRowCount('Users'));
-
-	// compare page
-	if (isset($d['form']))
+	if (isset($d['check_hash']))
 	{
-	  $this->assertSame(
-		$this->_get_form_fill_render($d['form']),
-		$this->page->getVars('form'));
+		$hash = MySqlDatabase::query('SELECT hash FROM Users WHERE id = 1',[])[0]->hash;
+		$this->assertSame(true,
+		  password_verify($d['data']['password'], $hash));
 	}
 
-	if (isset($d['flash']))
-	  $this->assertSame($d['flash'], $this->app->getUser()->getFlash());
-
-	if (isset($d['sessionCheck']))
-	  $this->assertSame($d['sessionCheck'], $_SESSION);
+	// faire un request pour get le hash en db
+	// le test avec le new mdp
   }
 
 

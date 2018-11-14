@@ -7,6 +7,7 @@
 
 namespace Core\User;
 
+use function array_merge;
 use Core\Controller\Controller;
 use Core\Http\HTTPRequest;
 use Core\Mail\PhpMail;
@@ -21,6 +22,7 @@ class UserController extends Controller
   const MODIF_OK = 'Modification effectuees';
 
   // err
+  const NEED_OLD_PASS = 'taper votre ancien mdp please';
   const BAD_CREDITIAL = 'Mauvais login || password';
   const NAMESPACE_FORM = 'Core\User\HTML\\';
   const EMAIL_NOT_CONFIRM = 'email non confime';
@@ -33,6 +35,23 @@ class UserController extends Controller
 	return
 	  $user->isAuthenticated() === true &&
 	  $user->getAttribute('id') === $id;
+  }
+
+
+  private function _addPageReturn($ret)
+  {
+	$this->addToPage('form', $this->form->createView());
+	if ($ret)
+	  return true;
+	else
+	  return false;
+  }
+
+
+  private function _setFlashReturn($message, $ret)
+  {
+	$this->user->setFlash($message);
+	return $this->_addPageReturn($ret);
   }
 
 
@@ -92,28 +111,19 @@ class UserController extends Controller
   }
 
 
-  private function _isUniqueLogAndMail()
+  private function _isUniqueLogAndMail($id = false)
   {
-	$res = true;
-	$isNew = $this->model->userExist($this->entity->email);
-	if ($isNew !== false)
+	if ($this->model->userExist($this->entity->email, $id) !== false)
 	{
 	  $this->app->getUser()->setFlash(UserModel::EXISTING_EMAIL);
-	  $res = false;
-	}
-
-	$isNew = $this->model->loginExist($this->entity->login);
-	if ($isNew !== false)
-	{
-	  $this->app->getUser()->setFlash(UserModel::EXISTING_LOGIN);
-	  $res = false;
-	}
-
-	if ($res === false)
-	{
-	  $this->addToPage('form', $this->form->createView());
 	  return false;
 	}
+	if ($this->model->loginExist($this->entity->login, $id))
+	{
+	  $this->app->getUser()->setFlash(UserModel::EXISTING_LOGIN);
+	  return false;
+	}
+
 	return true;
   }
 
@@ -126,8 +136,9 @@ class UserController extends Controller
 	if ($user->sameCheck($request->getData('token')))
 	{
 	  $this->model->modify([
-		'id'      => $user->id,
-		'checked' => true
+		'id'          => $user->id,
+		'checked'     => true,
+		'email_check' => null
 	  ]);
 	  return true;
 	}
@@ -140,8 +151,12 @@ class UserController extends Controller
 	if ($this->_initFormAndCatchGet($request, "InfoUser") === true)
 	  return true;
 
+
 	if ($this->_isUniqueLogAndMail() === false)
+	{
+	  $this->addToPage('form', $this->form->createView());
 	  return false;
+	}
 
 	if ($this->form->isValid() === false)
 	{
@@ -223,22 +238,63 @@ class UserController extends Controller
 	}
 
 	// TODO : make protection if not work
+	// I search the user in db and fill field if he is GET
 	$this->entity = $this->model->fetchOne(
 	  $this->user->getAttribute('id'));
 
-	if ($this->_initFormAndCatchGet($request, "InfoUser") === true)
+	// if is request GET
+	if ($this->_initFormAndCatchGet($request, "ModifyUser") === true)
 	  return true;
 
-	if ($this->form->isValid(['email']) === false)
+
+	// NEXT i check all the fild
+	if ($this->form->isValid($request->getAllPost()) === false)
+	  return $this->_addPageReturn(false);
+
+
+	// Is the new login and email unique
+	if ($this->_isUniqueLogAndMail($this->user->getAttribute('id')) === false)
+	  return $this->_addPageReturn(false);
+
+
+	// Is ask changement password
+	if ($request->postData('password') != null)
 	{
-	  $this->addToPage('form', $this->form->createView());
-	  return false;
+
+	  //if no password old pass
+	  if ($request->postData('oldpassword') === null)
+		$this->_setFlashReturn(self::NEED_OLD_PASS, false);
+
+	  // check password
+	  $dbUser = $this->model->getUserByLogin($this->entity->login);
+	  if ($dbUser && $dbUser->_compareHash($this->entity->oldPassword))
+	  {
+		$this->entity->generateHash();
+	  }
+	  else
+		return $this->_setFlashReturn(self::BAD_CREDITIAL, false);
 	}
 
+	// i set the new data, and push them in database
+	$forPush = $_POST;
+	if (isset($forPush['password']))
+	{
+	  unset($forPush['password']);
+	  unset($forPush['oldpassword']);
+	  $forPush[] = 'hash';
+	}
+
+	$this->model->modify(
+	  array_merge(
+		['id' => $this->user->getAttribute('id')],
+		$this->entity->getDataGiven($forPush)
+	  ));
+	return true;
   }
 
 
-  public function delete(HTTPRequest $request)
+  public
+  function delete(HTTPRequest $request)
   {
 	if (
 	  $request->method() === 'POST' &&

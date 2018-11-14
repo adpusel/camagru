@@ -11,10 +11,6 @@ namespace Core\User\HTML;
 use Core\Html\Field\InputField;
 use Core\HTML\Form\Form;
 use Core\HTML\Form\FormBuilder;
-use Core\Validator\EmailValidator;
-use Core\Validator\MaxLengthValidator;
-use Core\Validator\NotNullValidator;
-use Core\Validator\PasswordValidator;
 
 class LoginUserFormBuilder extends FormBuilder
 {

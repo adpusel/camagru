@@ -18,24 +18,28 @@ class UserEntity extends Entity
   protected
 	$email = '',
 	$password = '',
+	$oldPassword = '',
 	$email_check = '',
 	$hash = '',
 	$login = '',
 	$checked = false;
 
+
   /**
-   * @param array $askedFields
-   *
-   * @return array
+   * @return string
    */
-  public function getDataGiven(array $askedFields): array
+  public function getOldPassword(): string
   {
-	$ar  = [];
-	foreach ($askedFields as $askedField)
-	{
-	  $ar = array_merge($ar, $this->getKeyNameStr($askedField));
-    }
-	return $ar;
+	return $this->oldPassword;
+  }
+
+
+  /**
+   * @param string $oldPassword
+   */
+  public function setOldPassword(string $oldPassword): void
+  {
+	$this->oldPassword = $oldPassword;
   }
 
 
@@ -47,6 +51,7 @@ class UserEntity extends Entity
 	return $this->login;
   }
 
+
   /**
    * @param string $login
    */
@@ -54,6 +59,7 @@ class UserEntity extends Entity
   {
 	$this->login = $login;
   }
+
 
   /**
    * @return bool
@@ -63,6 +69,7 @@ class UserEntity extends Entity
 	return $this->checked;
   }
 
+
   /**
    * @param bool $checked
    */
@@ -71,11 +78,13 @@ class UserEntity extends Entity
 	$this->checked = $checked;
   }
 
+
   public function generateHash()
   {
 	$this->hash = $this->_hashPass($this->password);
 	return $this;
   }
+
 
   /**
    * @return mixed
@@ -85,6 +94,7 @@ class UserEntity extends Entity
 	return $this->hash;
   }
 
+
   /**
    * @return mixed
    */
@@ -92,6 +102,7 @@ class UserEntity extends Entity
   {
 	return $this->email;
   }
+
 
   /**
    * @param mixed $email
@@ -101,6 +112,7 @@ class UserEntity extends Entity
 	$this->email = $email;
   }
 
+
   /**
    * @param string $password
    */
@@ -108,6 +120,7 @@ class UserEntity extends Entity
   {
 	$this->password = $password;
   }
+
 
   /**
    * @return mixed
@@ -117,6 +130,7 @@ class UserEntity extends Entity
 	return $this->email_check;
   }
 
+
   /**
    * @return string
    */
@@ -125,11 +139,13 @@ class UserEntity extends Entity
 	return $this->password;
   }
 
+
   public function generateEmailCheck(): UserEntity
   {
 	$this->email_check = urlencode(bin2hex(random_bytes(50)));
 	return $this;
   }
+
 
   public function sameCheck($check_get)
   {

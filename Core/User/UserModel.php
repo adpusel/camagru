@@ -17,29 +17,48 @@ class UserModel extends Model
   const EXISTING_EMAIL = 'Cet email existe deja';
   const EXISTING_LOGIN = 'Ce login existe deja';
 
-  public function userExist(string $email)
+
+  public function userExist(string $email, $exept = false)
   {
+	$query = 'SELECT email FROM Users WHERE email = :email';
+	$data = ['email' => $email];
+	if ($exept)
+	{
+	  $query .= ' AND id != :id';
+	  $data['id'] = $exept;
+	}
+
 	return $this
 	  ->database
 	  ->query(
-		'SELECT email FROM Users WHERE email = :email',
-		['email' => $email],
+		$query,
+		$data,
 		$this->entity,
 		true
 	  );
   }
 
-  public function loginExist(string $login)
+
+  public function loginExist(string $login, $exept = false)
   {
+	$query = 'SELECT email FROM Users WHERE login = :login';
+	$data = ['login' => $login];
+	if ($exept)
+	{
+	  $query .= ' AND id != :id';
+	  $data['id'] = $exept;
+	}
+
 	return $this
 	  ->database
 	  ->query(
-		'SELECT login FROM Users WHERE login = :login',
-		['login' => $login],
+		$query,
+		$data,
 		$this->entity,
 		true
 	  );
   }
+
 
   public function getUserById(int $id)
   {
@@ -50,6 +69,7 @@ class UserModel extends Model
 	);
 	return $fetchedUser;
   }
+
 
   public function getUserByLogin(string $login)
   {

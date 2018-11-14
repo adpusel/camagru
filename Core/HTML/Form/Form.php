@@ -48,18 +48,18 @@ class Form
   }
 
 
-  public function isValid($selectField = false)
+  public function isValid($selectField = [])
   {
 	$valid = true;
 
-	if ($selectField)
+	if (!empty($selectField))
 	{
 	  foreach ($this->fields as $field)
 	  {
-		if (in_array($field->name(), $selectField) &&
-		  $field->isValid() === false
+		if (isset($selectField[$field->name()]) &&
+		  !$field->isValid()
 		)
-		  $valid = false;;
+		  $valid = false;
 	  }
 	}
 	else
@@ -70,6 +70,7 @@ class Form
 		  $valid = false;
 	  }
 	}
+
 	return $valid;
   }
 

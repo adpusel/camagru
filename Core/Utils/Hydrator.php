@@ -23,4 +23,20 @@ trait Hydrator
   {
 	return [$var => $this->$var];
   }
+
+  /**
+   * @param array $askedFields
+   *
+   * @return array
+   */
+  public function getDataGiven(array $askedFields): array
+  {
+	$ar  = [];
+	foreach ($askedFields as $askedField)
+	{
+	  $ar = array_merge($ar, $this->getKeyNameStr($askedField));
+	}
+	return $ar;
+  }
+
 }
