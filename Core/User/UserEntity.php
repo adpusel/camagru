@@ -125,7 +125,7 @@ class UserEntity extends Entity
   /**
    * @return mixed
    */
-  public function getEmailCheck(): string
+  public function getEmailCheck()
   {
 	return $this->email_check;
   }

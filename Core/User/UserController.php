@@ -7,6 +7,7 @@
 
 namespace Core\User;
 
+use function array_flip;
 use function array_merge;
 use Core\Controller\Controller;
 use Core\Http\HTTPRequest;
@@ -14,6 +15,7 @@ use Core\Mail\PhpMail;
 use function hash;
 use function print_r;
 use const ROOT;
+
 
 class UserController extends Controller
 {
@@ -99,18 +101,6 @@ class UserController extends Controller
   }
 
 
-  private function _sendInscriptionEmail(UserEntity $entity)
-  {
-	$mailer = new PhpMail(
-	  $entity->getEmail(),
-	  'Camagru',
-	  $this->_generateLink($entity, 'inscription_check'),
-	  'Confirm inscription'
-	);
-	return $mailer->sendEmail();
-  }
-
-
   private function _isUniqueLogAndMail($id = false)
   {
 	if ($this->model->userExist($this->entity->email, $id) !== false)
@@ -125,6 +115,18 @@ class UserController extends Controller
 	}
 
 	return true;
+  }
+
+
+  private function _sendInscriptionEmail(UserEntity $entity, $action, $subject)
+  {
+	$mailer = new PhpMail(
+	  $entity->getEmail(),
+	  'Camagru',
+	  $this->_generateLink($entity, $action),
+	  $subject
+	);
+	return $mailer->sendEmail();
   }
 
 
@@ -177,11 +179,15 @@ class UserController extends Controller
 	$this->entity->setId($this->model->lastInsertId());
 
 	// send le mail de verification
-	if ($this->_sendInscriptionEmail($this->entity) === false)
+	if ($this->_sendInscriptionEmail(
+		$this->entity,
+		'inscription_check',
+		'Confirm inscription')
+	  === false)
 	  return new \Exception('le mailer ne marche pas');
 
 	// TODO : faire les redirections
-	return "{$this->entity->getId()}.{$this->entity->getEmailCheck()}";
+	return true;
   }
 
 
@@ -281,14 +287,84 @@ class UserController extends Controller
 	{
 	  unset($forPush['password']);
 	  unset($forPush['oldpassword']);
-	  $forPush[] = 'hash';
+	  $forPush['hash'] = 0;
 	}
-
+	// TODO : c'est du bricolage, il faut refaire aussi celle de l'inscription
+	$forPush = array_flip($forPush);
 	$this->model->modify(
 	  array_merge(
 		['id' => $this->user->getAttribute('id')],
 		$this->entity->getDataGiven($forPush)
 	  ));
+	return true;
+  }
+
+
+  public function reset_password(HTTPRequest $request)
+  {
+	// if is request GET
+	if ($this->_initFormAndCatchGet($request, "ResetPassUser") === true)
+	  return true;
+
+	// query fetch le email
+	$this->entity =
+	  $this->model->fetchBy(
+		['email' => $request->postData('email')]
+	  );
+
+
+	// if bad email
+	if ($this->form->isValid($request->getAllPost()) === false)
+	  return $this->_addPageReturn(false);
+
+	// wrong email
+	if ($this->entity === false)
+	  return $this->_setFlashReturn(self::BAD_CREDITIAL, false);
+
+	$this->entity->generateEmailCheck();
+
+	if ($this->_sendInscriptionEmail(
+		$this->entity,
+		'change_password',
+		'Reset le password')
+	  === false)
+	  return new \Exception('le mailer ne marche pas');
+
+	// si email, je le save dans la base
+	$this->model->modify(
+	  $this->entity->getDataGiven(['email_check', 'id'])
+	);
+
+	return true;
+  }
+
+
+  public function change_password(HTTPRequest $request)
+  {
+	// fetch depuis la db et je compare avec le link
+	$dbUser = $this->model->fetchOne($request->getData('id'));
+	if ($dbUser === false)
+	  return false;
+
+	// TODO : faire une 404 ici
+	if ($dbUser->getEmailCheck() !== $request->getData('token'))
+	  return false;
+
+	// if method GET
+	if ($this->_initFormAndCatchGet($request, 'ResetPassUser') === true)
+	  return true;
+
+
+	if ($this->form->isValid($request->getAllPost()) === false)
+	  return $this->_addPageReturn(false);
+
+	// send new pass is DB
+	$this->entity->generateHash();
+	$this->entity->setId($request->getData('id'));
+	$this->model->modify(
+	  $this->entity->getDataGiven(['hash', 'id'])
+	);
+
 	return true;
   }
 

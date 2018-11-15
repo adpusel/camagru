@@ -2,7 +2,6 @@
 
 namespace Core\Utils;
 
-use Exception;
 
 trait Hydrator
 {
